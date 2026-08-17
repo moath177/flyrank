@@ -1,0 +1,32 @@
+{
+  "total_items": 30000,
+  "valid_position_items": 28795,
+  "eligible_opportunity_items": 9910,
+  "tier_expected_ctrs": {
+    "deep": 0.1502,
+    "page_1": 0.6525,
+    "page_3_5": 0.2225,
+    "striking": 0.3232,
+    "top_3": 2.7645
+  },
+  "signal_verdicts": {
+    "signal_1_position_tier_vs_ctr": "CONFIRMED",
+    "signal_2_impression_volume_vs_ctr_noise": "CONFIRMED"
+  },
+  "action_distribution": {
+    "no_action": 20090,
+    "monitor_ctr": 8593,
+    "review_snippet_and_intent": 883,
+    "rewrite_title_and_meta": 434
+  },
+  "reason_distribution": {
+    "low_impression_volume": 12069,
+    "page1_ctr_underperformer": 6155,
+    "deep_position_gt20": 4703,
+    "striking_distance_ctr_underperformer": 3288,
+    "performing_at_or_above_benchmark": 2113,
+    "no_position_data": 1205,
+    "top3_ctr_underperformer": 457,
+    "low_ctr_general": 10
+  }
+}
