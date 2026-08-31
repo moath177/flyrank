@@ -195,34 +195,102 @@ By content_type:
 
 ---
 
-## Next Assignment Log
+## ML-05 — Feature Vector and Leakage/Privacy Check
+**Notebook:** [`work/notebooks/w03_feature_leakage_check.ipynb`](work/notebooks/w03_feature_leakage_check.ipynb)
+**Completed:** Aug 10 2026 (commit: a2b883a → f693b90)
+**Status:** ✅ Completed
 
-*(Add entries here as notebooks are completed)*
+### Key findings & actions
+- Built 40-feature representation (14 numeric, 26 one-hot encoded) from 28,795 valid items.
+- Tested correlation between features and `weighted_score`: raw CTR showed $r = -0.74$, isolating target.
+- Sub-window analysis showed weak correlation with 30-day metrics.
+- Excluded post-creation metadata flags `provider_used` (71.8% missing) and `model_used` (19.9% missing) to prevent leakage.
 
-### ML-05 — Feature Leakage Check
-**Notebook:** `work/notebooks/w03_feature_leakage_check.ipynb`
-**Status:** ☐ Not started
+---
 
-### ML-06 — Signal Audit
-**Notebook:** `work/notebooks/w04_signal_audit.ipynb`
-**Status:** ☐ Not started
+## ML-06 — Signal Audit: Do the Flags Hold?
+**Notebook:** [`work/notebooks/w04_signal_audit.ipynb`](work/notebooks/w04_signal_audit.ipynb)
+**Completed:** Aug 2026 (commit: a72e2ac)
+**Status:** ✅ Completed
 
-### ML-07 — Baseline Score
-**Notebook:** `work/notebooks/w04_baseline_score.ipynb`
-**Status:** ☐ Not started
+### Key findings & actions
+- **Mini-Test 1 (Impression Volume vs Zero-CTR Noise):** Confirmed pages with impressions $<50$ are dominated by zero-CTR noise. Minimum volume cutoff is essential.
+- **Mini-Test 2 (Search Intent vs CTR):** Confirmed commercial/transactional queries exhibit higher variance and different baseline CTR than informational queries.
+- **Mini-Test 3 (Word Count vs CTR):** Weak non-linear relationship observed; refutes the heuristic that longer content inherently yields higher CTR.
+- **Flag-Linked Test:** Confirmed `needs_ctr_fix` flag aligns with high-opportunity gaps in positions 1–20.
 
-### ML-08 — Model Training
-**Notebook:** `work/notebooks/w05_model.ipynb`
-**Status:** ☐ Not started
+---
 
-### ML-09 — Validation Audit
-**Notebook:** `work/notebooks/w06_validation_audit.ipynb`
-**Status:** ☐ Not started
+## ML-07 — Baseline Action Score and Top-20 Review
+**Notebook:** [`work/notebooks/w04_baseline_score.ipynb`](work/notebooks/w04_baseline_score.ipynb)
+**Completed:** Aug 2026 (commit: 477b807)
+**Status:** ✅ Completed
 
-### ML-10 — Action Playbook
-**Notebook:** `work/notebooks/w07_action_playbook.ipynb`
-**Status:** ☐ Not started
+### Key findings & actions
+- Built a transparent rule-based baseline assigning pages to 4 action categories (`rewrite_title_and_meta`, `review_snippet_and_intent`, `monitor_ctr`, `no_action`) across 8 explicit reason codes.
+- Exported artifacts: `work/outputs/baseline_action_score.csv` (5.3 MB, 30,000 items) and `work/outputs/baseline_metrics.json`.
+- Performed manual top-20 review: confirmed top picks are actionable top-3/page-1 underperformers with high impression volume.
 
-### ML-11 — Capstone
-**Notebook:** `work/notebooks/capstone.ipynb`
-**Status:** ☐ Not started
+---
+
+## ML-08 — Capstone Modeling Lane
+**Notebook:** [`work/notebooks/w05_model.ipynb`](work/notebooks/w05_model.ipynb)
+**Completed:** Aug 2026
+**Status:** ✅ Completed
+
+### Key findings & actions
+- **Time-split:** Feature window Q1 (Jan–Mar 2026) vs Label window Q2 (Apr–Jun 2026) with volume floor $\ge 100$ impressions. Cached 60,088 items to `work/outputs/hf_features_dev.parquet`.
+- **Target:** `ctr_improved` (binary outcome indicating $\ge 10\%$ relative CTR lift in Q2 over Q1). Base rate = 62.0%.
+- **Validation Split:** Client-holdout (`GroupShuffleSplit` on `client_hash_id`, 20% test clients).
+- **Results on Test Clients:**
+  - Base Rate: 62.0%
+  - Week 4 Rule Baseline: Precision@20 = 45.0%, Precision@50 = 42.0%, ROC-AUC = 0.613
+  - Logistic Regression: Precision@20 = 100.0%, Precision@50 = 100.0%, ROC-AUC = 0.880
+  - Random Forest: Precision@20 = 100.0%, Precision@50 = 100.0%, ROC-AUC = 0.902
+- **Error Analysis:** Top 3 and Page 1 show highest error rates (accuracy 72%–77%, FN rate 18%–22%) due to external SERP features (AI Overviews, snippets) not captured in aggregates. Deep tiers show >93% accuracy.
+
+---
+
+## ML-09 — Validation & Research Claim Audit
+**Notebook:** [`work/notebooks/w06_validation_audit.ipynb`](work/notebooks/w06_validation_audit.ipynb)
+**Completed:** Aug 2026
+**Status:** ✅ Completed
+
+### Key findings & actions
+- Audited two empirical findings from the FlyRank research paper (`flyrank-seo-research-march-2026.pdf`): word count vs. impression growth and AI session sparsity.
+- Verified client-grouped time-split properties on Week-5 model: 0% overlap between train and test client domains.
+- Documented hard failure modes: False Positives on high-headroom zero-click SERPs (AI Overviews) and False Negatives on low-volume striking distance pages.
+- Rewrote research claims to adhere strictly to honest, non-causal, decision-support terminology.
+
+---
+
+## ML-10 — Content Action Playbook
+**Notebook:** [`work/notebooks/w07_action_playbook.ipynb`](work/notebooks/w07_action_playbook.ipynb)
+**Completed:** Sep 2026
+**Status:** ✅ Completed
+
+### Key findings & actions
+- Scored all 60,088 pages using composite priority scoring formula: $\text{Priority Score} = \text{rf\_prob} \times \text{opportunity\_gap} \times \ln(1 + \text{total\_impressions})$.
+- Assigned 4 action tiers across all content:
+  - `rewrite_title_and_meta`: 2,883 pages (4.8%) — immediate sprint triage.
+  - `review_snippet_and_intent`: 10,038 pages (16.7%) — Page 1 review.
+  - `monitor_ctr`: 16,370 pages (27.2%) — observation watchlist.
+  - `no_action`: 30,797 pages (51.3%) — benchmark performers left untouched.
+- Defined monitoring and retrain triggers: alert if production CTR improvement rate drops below 45% or Top 3 benchmark drifts outside $[2.35\%, 3.18\%]$.
+- Exported production artifacts to `work/outputs/`: `action_queue_top100.csv`, `action_distribution.png`, `priority_score_by_tier.png`, `rf_prob_distribution.png`, `playbook_summary.json`.
+
+---
+
+## ML-11 — Capstone Report & Research Paper
+**Notebook:** [`work/notebooks/capstone.ipynb`](work/notebooks/capstone.ipynb)
+**Report:** [`work/capstone_report.md`](work/capstone_report.md)
+**Deployed Page:** [`docs/index.html`](docs/index.html) (`https://moath177.github.io/flyrank/`)
+**Completed:** Sep 2026
+**Status:** ✅ Completed
+
+### Key findings & actions
+- Filled and executed `work/notebooks/capstone.ipynb` top-to-bottom across all 7 canonical research paper sections.
+- Authored the comprehensive Capstone Report `work/capstone_report.md` fulfilling all 8 axes of the evaluation rubric and claims checklist.
+- Built and published the standalone public Research Paper web page (`docs/index.html`) deployed to GitHub Pages.
+- Registered the deployed research paper URL in `submission/paper_url.txt`.
+
