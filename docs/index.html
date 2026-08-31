@@ -1,31 +1,50 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prioritizing Content Snippet Rewrites via Machine-Learned CTR Opportunity Scoring — FlyRank ML Research</title>
     <meta name="description" content="A machine-learned decision-support framework to identify and rank organic search content for snippet optimization, achieving 100% Precision@20 on held-out enterprise domains.">
+    <meta name="author" content="FlyRank ML Intern (moath177)">
+    
+    <!-- OpenGraph / Social Sharing -->
+    <meta property="og:title" content="Prioritizing Content Snippet Rewrites via Machine-Learned CTR Opportunity Scoring">
+    <meta property="og:description" content="Machine Learning framework on 60,088 enterprise search records achieving 100% Precision@20 on held-out client domains.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://moath177.github.io/flyrank/">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
         :root {
-            --bg-primary: #090b10;
-            --bg-secondary: #11141d;
-            --bg-card: #161b26;
-            --bg-card-hover: #1c2230;
-            --border-subtle: #232a3b;
-            --border-highlight: #34405c;
-            --text-primary: #f0f4f8;
+            --bg-base: #07090e;
+            --bg-surface: #0e121b;
+            --bg-elevated: #151a27;
+            --bg-glass: rgba(14, 18, 27, 0.75);
+            --border-subtle: rgba(255, 255, 255, 0.07);
+            --border-medium: rgba(255, 255, 255, 0.12);
+            --border-accent: rgba(56, 189, 248, 0.35);
+            --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --text-muted: #64748b;
-            --accent-blue: #38bdf8;
-            --accent-cyan: #06b6d4;
-            --accent-purple: #818cf8;
-            --accent-emerald: #10b981;
-            --accent-amber: #f59e0b;
-            --accent-rose: #f43f5e;
-            --glow: rgba(56, 189, 248, 0.12);
+            
+            --teal-accent: #2dd4bf;
+            --cyan-accent: #38bdf8;
+            --indigo-accent: #818cf8;
+            --emerald-accent: #10b981;
+            --amber-accent: #f59e0b;
+            --rose-accent: #f43f5e;
+            
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --radius-full: 9999px;
+            
+            --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.25);
+            --shadow-elevated: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+            --shadow-glow: 0 0 30px rgba(56, 189, 248, 0.15);
         }
 
         * {
@@ -36,197 +55,358 @@
 
         body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-primary);
+            background-color: var(--bg-base);
             color: var(--text-primary);
-            line-height: 1.7;
+            line-height: 1.75;
             font-size: 16px;
             letter-spacing: -0.01em;
-            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 10%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 85% 30%, rgba(129, 140, 248, 0.04) 0%, transparent 45%);
+            background-attachment: fixed;
         }
 
-        /* Header & Nav */
-        header {
+        /* Reading Progress Bar */
+        #progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--teal-accent), var(--cyan-accent), var(--indigo-accent));
+            width: 0%;
+            z-index: 1000;
+            transition: width 0.1s ease-out;
+        }
+
+        /* Navigation */
+        nav {
             position: sticky;
             top: 0;
             z-index: 100;
-            backdrop-filter: blur(16px);
-            background: rgba(9, 11, 16, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: var(--bg-glass);
             border-bottom: 1px solid var(--border-subtle);
-            padding: 1rem 1.5rem;
+            padding: 0.85rem 1.5rem;
+            transition: all 0.2s ease;
         }
 
-        .nav-container {
-            max-width: 1080px;
+        .nav-wrapper {
+            max-width: 1160px;
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .logo {
+        .brand {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
-            font-weight: 700;
-            font-size: 1.05rem;
-            color: var(--text-primary);
+            gap: 0.75rem;
             text-decoration: none;
+            color: var(--text-primary);
         }
 
-        .logo-badge {
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-            color: #090b10;
-            padding: 0.2rem 0.5rem;
-            border-radius: 6px;
+        .brand-pill {
+            font-family: 'Outfit', sans-serif;
             font-size: 0.75rem;
             font-weight: 800;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.08em;
+            padding: 0.25rem 0.6rem;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--teal-accent), var(--cyan-accent));
+            color: #04080e;
+            text-transform: uppercase;
+        }
+
+        .brand-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: -0.02em;
         }
 
         .nav-links {
             display: flex;
-            gap: 1.5rem;
+            gap: 1.25rem;
             align-items: center;
+            font-size: 0.88rem;
         }
 
-        .nav-links a {
+        .nav-link {
             color: var(--text-secondary);
             text-decoration: none;
-            font-size: 0.9rem;
             font-weight: 500;
-            transition: color 0.2s ease;
+            transition: color 0.15s ease;
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius-sm);
         }
 
-        .nav-links a:hover {
-            color: var(--accent-blue);
+        .nav-link:hover {
+            color: var(--cyan-accent);
+            background: rgba(255, 255, 255, 0.03);
         }
 
-        .btn-repo {
+        .btn-action {
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            padding: 0.45rem 0.9rem;
-            border-radius: 8px;
-            color: var(--text-primary);
-            text-decoration: none;
+            gap: 0.45rem;
+            padding: 0.45rem 0.95rem;
+            border-radius: var(--radius-md);
             font-size: 0.85rem;
             font-weight: 600;
-            transition: all 0.2s ease;
+            text-decoration: none;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .btn-repo:hover {
-            border-color: var(--accent-blue);
-            background: var(--bg-card-hover);
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-medium);
+            color: var(--text-primary);
         }
 
-        /* Main Container */
-        .article-container {
-            max-width: 900px;
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--cyan-accent);
+            transform: translateY(-1px);
+        }
+
+        /* Article Layout */
+        .layout {
+            max-width: 1160px;
             margin: 0 auto;
-            padding: 3.5rem 1.5rem 6rem;
+            padding: 3rem 1.5rem 6rem;
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 3.5rem;
+            align-items: start;
         }
 
-        /* Hero / Paper Title */
-        .paper-header {
+        .paper-content {
+            max-width: 800px;
+        }
+
+        /* Sticky Table of Contents */
+        .toc-sidebar {
+            position: sticky;
+            top: 5rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            font-size: 0.85rem;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .toc-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 0.85rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .toc-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .toc-item a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: block;
+            padding: 0.3rem 0.6rem;
+            border-radius: var(--radius-sm);
+            transition: all 0.15s ease;
+            line-height: 1.4;
+        }
+
+        .toc-item a:hover, .toc-item a.active {
+            color: var(--cyan-accent);
+            background: rgba(56, 189, 248, 0.08);
+            font-weight: 600;
+            padding-left: 0.85rem;
+        }
+
+        /* Paper Header */
+        .paper-hero {
             margin-bottom: 3.5rem;
-            text-align: left;
         }
 
-        .lane-pill {
+        .lane-badge {
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
-            background: rgba(56, 189, 248, 0.1);
-            color: var(--accent-blue);
-            border: 1px solid rgba(56, 189, 248, 0.3);
-            padding: 0.35rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
+            background: rgba(45, 212, 191, 0.08);
+            border: 1px solid rgba(45, 212, 191, 0.25);
+            color: var(--teal-accent);
+            padding: 0.35rem 0.85rem;
+            border-radius: var(--radius-full);
+            font-size: 0.78rem;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.06em;
             margin-bottom: 1.25rem;
         }
 
         h1 {
-            font-size: 2.5rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.75rem;
             font-weight: 800;
-            line-height: 1.25;
-            letter-spacing: -0.03em;
-            margin-bottom: 1.25rem;
-            background: linear-gradient(135deg, #ffffff 40%, var(--text-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            line-height: 1.18;
+            letter-spacing: -0.035em;
+            color: #ffffff;
+            margin-bottom: 1.5rem;
         }
 
-        .metadata-strip {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1.5rem;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            padding-top: 1rem;
+        .hero-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            padding: 1.25rem 0;
             border-top: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border-subtle);
+            font-size: 0.85rem;
+            margin-bottom: 2.5rem;
         }
 
-        .meta-item {
+        .meta-cell {
             display: flex;
-            align-items: center;
-            gap: 0.4rem;
+            flex-direction: column;
+            gap: 0.15rem;
         }
 
-        .meta-item strong {
-            color: var(--text-secondary);
+        .meta-cell-label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .meta-cell-value {
+            color: var(--text-primary);
+            font-weight: 600;
         }
 
         /* Abstract Callout */
-        .abstract-card {
-            background: linear-gradient(180deg, var(--bg-card), var(--bg-secondary));
-            border: 1px solid var(--border-highlight);
-            border-left: 4px solid var(--accent-blue);
-            border-radius: 12px;
-            padding: 1.75rem 2rem;
+        .abstract-container {
+            background: linear-gradient(180deg, var(--bg-surface) 0%, rgba(14, 18, 27, 0.6) 100%);
+            border: 1px solid var(--border-medium);
+            border-left: 4px solid var(--cyan-accent);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
             margin-bottom: 3.5rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            box-shadow: var(--shadow-elevated);
         }
 
-        .abstract-title {
-            font-size: 0.85rem;
+        .abstract-heading {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            font-weight: 700;
-            color: var(--accent-blue);
-            margin-bottom: 0.75rem;
+            letter-spacing: 0.12em;
+            color: var(--cyan-accent);
+            margin-bottom: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .abstract-text {
+        .abstract-body {
             font-size: 1.05rem;
             color: #cbd5e1;
-            line-height: 1.8;
-            font-weight: 400;
+            line-height: 1.85;
         }
 
-        /* Headings & Text */
+        /* KPI Dashboard Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 3.5rem;
+        }
+
+        .kpi-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 1.25rem 1.1rem;
+            transition: all 0.2s ease;
+        }
+
+        .kpi-card:hover {
+            border-color: var(--border-medium);
+            background: var(--bg-elevated);
+            transform: translateY(-2px);
+        }
+
+        .kpi-title {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+        }
+
+        .kpi-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.1;
+        }
+
+        .kpi-delta {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-top: 0.35rem;
+        }
+
+        /* Section Styling */
+        section {
+            margin-bottom: 4rem;
+            scroll-margin-top: 5.5rem;
+        }
+
         h2 {
-            font-size: 1.65rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.75rem;
             font-weight: 700;
             letter-spacing: -0.02em;
             color: #ffffff;
-            margin: 3.25rem 0 1.25rem;
-            padding-bottom: 0.6rem;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.65rem;
             border-bottom: 1px solid var(--border-subtle);
             display: flex;
             align-items: center;
-            gap: 0.6rem;
+            gap: 0.65rem;
+        }
+
+        .sec-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--cyan-accent);
+            background: rgba(56, 189, 248, 0.08);
+            padding: 0.2rem 0.5rem;
+            border-radius: var(--radius-sm);
         }
 
         h3 {
-            font-size: 1.2rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
             font-weight: 600;
-            color: var(--text-primary);
-            margin: 1.75rem 0 0.75rem;
+            color: #f1f5f9;
+            margin: 1.75rem 0 0.85rem;
+            letter-spacing: -0.01em;
         }
 
         p {
@@ -236,6 +416,7 @@
 
         strong {
             color: #ffffff;
+            font-weight: 600;
         }
 
         ul, ol {
@@ -247,895 +428,957 @@
             margin-bottom: 0.5rem;
         }
 
-        /* Grid & Cards */
-        .stat-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin: 1.5rem 0 2rem;
-        }
-
-        .stat-card {
-            background: var(--bg-card);
+        /* Data Tables */
+        .table-card {
+            background: var(--bg-surface);
             border: 1px solid var(--border-subtle);
-            border-radius: 10px;
-            padding: 1.25rem 1.5rem;
-            text-align: left;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            margin: 1.75rem 0;
+            box-shadow: var(--shadow-subtle);
         }
 
-        .stat-label {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-muted);
-            margin-bottom: 0.35rem;
-        }
-
-        .stat-value {
-            font-size: 1.85rem;
-            font-weight: 800;
-            font-family: 'JetBrains Mono', monospace;
-            color: #ffffff;
-        }
-
-        .stat-sub {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-top: 0.25rem;
-        }
-
-        /* Tables */
-        .table-wrap {
+        .table-responsive {
             overflow-x: auto;
-            margin: 1.5rem 0 2.5rem;
-            border-radius: 10px;
-            border: 1px solid var(--border-subtle);
-            background: var(--bg-secondary);
+            width: 100%;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             text-align: left;
         }
 
-        thead {
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border-highlight);
-        }
-
-        th {
-            padding: 0.9rem 1.1rem;
-            font-weight: 600;
-            color: #ffffff;
-            font-size: 0.8rem;
+        thead th {
+            background: var(--bg-elevated);
+            padding: 0.95rem 1.15rem;
+            font-weight: 700;
+            font-size: 0.75rem;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-medium);
         }
 
-        td {
-            padding: 0.85rem 1.1rem;
+        tbody td {
+            padding: 0.85rem 1.15rem;
             border-bottom: 1px solid var(--border-subtle);
             color: #cbd5e1;
         }
 
-        tr:last-child td {
+        tbody tr:last-child td {
             border-bottom: none;
         }
 
-        tr:hover td {
-            background: rgba(255, 255, 255, 0.02);
+        tbody tr:hover td {
+            background: rgba(255, 255, 255, 0.015);
         }
 
-        .highlight-row {
-            background: rgba(56, 189, 248, 0.06) !important;
+        .row-winner td {
+            background: rgba(56, 189, 248, 0.05) !important;
+            color: #ffffff;
             font-weight: 600;
         }
 
-        .highlight-row td {
-            color: #ffffff;
+        /* Interactive Queue Explorer */
+        .explorer-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.25rem 1.5rem;
+            background: var(--bg-elevated);
+            border-bottom: 1px solid var(--border-medium);
         }
 
-        /* Figures & Charts */
-        .figure-box {
-            background: var(--bg-secondary);
+        .search-box {
+            background: var(--bg-base);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            padding: 0.45rem 0.85rem;
+            font-size: 0.85rem;
+            font-family: inherit;
+            width: 240px;
+            outline: none;
+            transition: border-color 0.15s ease;
+        }
+
+        .search-box:focus {
+            border-color: var(--cyan-accent);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.4rem;
+            align-items: center;
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.04);
             border: 1px solid var(--border-subtle);
-            border-radius: 12px;
-            padding: 1.5rem;
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--cyan-accent);
+            color: #040810;
+            border-color: var(--cyan-accent);
+        }
+
+        /* Formula Card & Callouts */
+        .formula-box {
+            background: linear-gradient(135deg, rgba(14, 18, 27, 0.95), rgba(21, 26, 39, 0.95));
+            border: 1px solid var(--border-accent);
+            border-radius: var(--radius-lg);
+            padding: 1.75rem 2rem;
             margin: 2rem 0;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .formula-display {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 1.25rem;
+            padding: 0.75rem 1.25rem;
+            background: var(--bg-base);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+            display: inline-block;
+        }
+
+        .formula-terms {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .formula-term-title {
+            font-weight: 700;
+            color: var(--cyan-accent);
+            margin-bottom: 0.25rem;
+        }
+
+        .callout-insight {
+            background: rgba(245, 158, 11, 0.06);
+            border-left: 4px solid var(--amber-accent);
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            padding: 1.25rem 1.5rem;
+            margin: 1.75rem 0;
+        }
+
+        .callout-insight-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--amber-accent);
+            margin-bottom: 0.4rem;
+        }
+
+        /* Figures */
+        .figure-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            margin: 2.25rem 0;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .figure-img-wrapper {
+            background: #090b10;
+            padding: 1rem;
+            text-align: center;
         }
 
         .figure-img {
-            width: 100%;
+            max-width: 100%;
             height: auto;
-            border-radius: 8px;
+            border-radius: var(--radius-md);
             display: block;
-            background: #0f1117;
+            margin: 0 auto;
         }
 
-        .figure-caption {
-            margin-top: 1rem;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            line-height: 1.5;
-            padding-top: 0.75rem;
+        .figure-meta {
+            padding: 1.25rem 1.5rem;
+            background: var(--bg-elevated);
             border-top: 1px solid var(--border-subtle);
+            font-size: 0.86rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
         }
 
-        .figure-caption strong {
-            color: var(--accent-blue);
+        .figure-meta strong {
+            color: var(--cyan-accent);
         }
 
-        /* Badges & Tags */
+        /* Badges & Pills */
         .badge {
-            display: inline-block;
-            padding: 0.25rem 0.6rem;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            letter-spacing: 0.02em;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.65rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
         }
 
         .badge-rewrite {
-            background: rgba(244, 63, 94, 0.15);
+            background: rgba(244, 63, 94, 0.12);
             color: #fb7185;
-            border: 1px solid rgba(244, 63, 94, 0.35);
+            border: 1px solid rgba(244, 63, 94, 0.3);
         }
 
         .badge-review {
-            background: rgba(245, 158, 11, 0.15);
+            background: rgba(245, 158, 11, 0.12);
             color: #fbbf24;
-            border: 1px solid rgba(245, 158, 11, 0.35);
+            border: 1px solid rgba(245, 158, 11, 0.3);
         }
 
         .badge-monitor {
-            background: rgba(56, 189, 248, 0.15);
+            background: rgba(56, 189, 248, 0.12);
             color: #7dd3fc;
-            border: 1px solid rgba(56, 189, 248, 0.35);
+            border: 1px solid rgba(56, 189, 248, 0.3);
         }
 
-        .tier-pill {
+        .tier-tag {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.75rem;
-            padding: 0.15rem 0.45rem;
+            padding: 0.2rem 0.5rem;
             border-radius: 4px;
-            background: rgba(255, 255, 255, 0.06);
-            color: #94a3b8;
+            background: rgba(255, 255, 255, 0.05);
         }
 
-        .tier-top_3 { color: #fb7185; }
-        .tier-striking { color: #fbbf24; }
-        .tier-page_1 { color: #38bdf8; }
+        .tier-top_3 { color: #fb7185; font-weight: 600; }
+        .tier-striking { color: #fbbf24; font-weight: 600; }
+        .tier-page_1 { color: #38bdf8; font-weight: 600; }
 
-        /* Code snippets */
+        /* Code Blocks */
         code {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.85em;
-            background: var(--bg-card);
-            padding: 0.2em 0.4em;
+            background: var(--bg-elevated);
+            padding: 0.2em 0.45em;
             border-radius: 4px;
             border: 1px solid var(--border-subtle);
             color: #e2e8f0;
         }
 
         pre {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-subtle);
-            border-radius: 10px;
-            padding: 1.25rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
             overflow-x: auto;
-            margin: 1.25rem 0 2rem;
+            margin: 1.5rem 0 2rem;
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.85rem;
             color: #cbd5e1;
-            line-height: 1.6;
+            line-height: 1.65;
+            position: relative;
         }
 
-        /* Utilities */
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.6rem 1.25rem;
+            background: var(--bg-elevated);
+            border-bottom: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+        }
+
+        .btn-copy {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-copy:hover {
+            color: var(--cyan-accent);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Toast notification */
+        #toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--cyan-accent);
+            color: #040810;
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-elevated);
+            z-index: 1000;
+            display: none;
+            animation: slideUp 0.2s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Typography Utilities */
         .text-right { text-align: right; }
         .text-center { text-align: center; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         .font-bold { font-weight: 700; }
-        .text-emerald { color: var(--accent-emerald); }
-        .text-accent { color: var(--accent-blue); }
+        .text-emerald { color: var(--emerald-accent); }
+        .text-accent { color: var(--cyan-accent); }
         .text-muted { color: var(--text-muted); }
-
-        /* Callout Box */
-        .callout {
-            background: rgba(245, 158, 11, 0.08);
-            border-left: 4px solid var(--accent-amber);
-            padding: 1.25rem 1.5rem;
-            border-radius: 0 8px 8px 0;
-            margin: 1.5rem 0 2rem;
-        }
-
-        .callout-title {
-            font-weight: 700;
-            color: var(--accent-amber);
-            font-size: 0.9rem;
-            margin-bottom: 0.4rem;
-        }
 
         /* Footer */
         footer {
             border-top: 1px solid var(--border-subtle);
-            background: var(--bg-secondary);
-            padding: 3rem 1.5rem;
+            background: var(--bg-surface);
+            padding: 4rem 1.5rem;
             color: var(--text-secondary);
             font-size: 0.9rem;
         }
 
-        .footer-container {
-            max-width: 1080px;
+        .footer-wrapper {
+            max-width: 1160px;
             margin: 0 auto;
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            gap: 1.5rem;
+            gap: 2rem;
         }
 
         .credit-link {
-            color: var(--accent-blue);
+            color: var(--cyan-accent);
             text-decoration: none;
             font-weight: 600;
         }
         .credit-link:hover { text-decoration: underline; }
 
-        @media (max-width: 768px) {
-            h1 { font-size: 1.85rem; }
-            .stat-grid { grid-template-columns: 1fr 1fr; }
-            .article-container { padding-top: 2rem; }
+        /* Responsive design */
+        @media (max-width: 1024px) {
+            .layout {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            .toc-sidebar {
+                display: none;
+            }
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .formula-terms {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            h1 { font-size: 2rem; }
+            .kpi-grid { grid-template-columns: 1fr; }
+            .nav-links { display: none; }
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="nav-container">
-            <a href="#" class="logo">
-                <span class="logo-badge">FLYRANK ML</span>
-                <span>Search Intelligence Paper</span>
+    <div id="progress-bar"></div>
+
+    <nav>
+        <div class="nav-wrapper">
+            <a href="#" class="brand">
+                <span class="brand-pill">FLYRANK ML</span>
+                <span class="brand-title">Search Intelligence Research</span>
             </a>
             <div class="nav-links">
-                <a href="#abstract">Abstract</a>
-                <a href="#methodology">Methodology</a>
-                <a href="#results">Results</a>
-                <a href="#playbook">Playbook</a>
-                <a href="https://github.com/moath177/flyrank" target="_blank" class="btn-repo">
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                    GitHub Repo
+                <a href="#abstract" class="nav-link">Abstract</a>
+                <a href="#data" class="nav-link">Data</a>
+                <a href="#methodology" class="nav-link">Methodology</a>
+                <a href="#results" class="nav-link">Results</a>
+                <a href="#playbook" class="nav-link">Playbook</a>
+                <a href="#reproducibility" class="nav-link">Reproducibility</a>
+                <a href="https://github.com/moath177/flyrank" target="_blank" class="btn-action btn-outline">
+                    <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                    GitHub
                 </a>
             </div>
         </div>
-    </header>
+    </nav>
 
-    <main class="article-container">
+    <div class="layout">
+        
+        <!-- Main Paper Content -->
+        <article class="paper-content">
 
-        <!-- Title & Metadata -->
-        <div class="paper-header">
-            <div class="lane-pill">Lane: CTR / Engagement Opportunity Scoring</div>
-            <h1>Prioritizing Content Snippet Rewrites via Machine-Learned CTR Opportunity Scoring</h1>
-            <div class="metadata-strip">
-                <div class="meta-item"><strong>Author:</strong> FlyRank ML Intern (moath177)</div>
-                <div class="meta-item"><strong>Dataset:</strong> FlyRank Warehouse Jan–Feb 2026</div>
-                <div class="meta-item"><strong>Scope:</strong> 28 Enterprise Clients (60,088 pages)</div>
-                <div class="meta-item"><strong>Status:</strong> Validated Capstone</div>
+            <!-- Header -->
+            <div class="paper-hero">
+                <div class="lane-badge">Lane: CTR / Engagement Opportunity Scoring</div>
+                <h1>Prioritizing Content Snippet Rewrites via Machine-Learned CTR Opportunity Scoring</h1>
+                
+                <div class="hero-meta">
+                    <div class="meta-cell">
+                        <span class="meta-cell-label">Author</span>
+                        <span class="meta-cell-value">FlyRank ML Intern (moath177)</span>
+                    </div>
+                    <div class="meta-cell">
+                        <span class="meta-cell-label">Data Release</span>
+                        <span class="meta-cell-value">FlyRank Warehouse Jan–Feb 2026</span>
+                    </div>
+                    <div class="meta-cell">
+                        <span class="meta-cell-label">Scale</span>
+                        <span class="meta-cell-value">28 Clients · 60,088 Pages</span>
+                    </div>
+                    <div class="meta-cell">
+                        <span class="meta-cell-label">Status</span>
+                        <span class="meta-cell-value text-emerald">Peer-Validated Capstone</span>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <!-- Abstract -->
-        <div class="abstract-card" id="abstract">
-            <div class="abstract-title">Abstract</div>
-            <p class="abstract-text">
-                High-ranking organic search content frequently under-captures click-through rate (CTR) due to sub-optimal title tags and meta descriptions, yet manual auditing across large enterprise catalogs is economically intractable. We trained a Random Forest classification model on <strong>60,088 page-month observations</strong> across <strong>28 anonymized enterprise clients</strong> from the FlyRank ML Internship dataset, engineering six leakage-free historical features from January 2026 to predict February month-over-month CTR improvement (≥10% gain). Evaluated on a strictly client-grouped holdout partition (6 unseen clients, 15,970 pages), the model achieved <strong>100.0% Precision@20</strong> and an <strong>ROC-AUC of 0.902</strong>, substantially outperforming the rule-based heuristic baseline (Precision@20 of 45.0%, ROC-AUC of 0.613). By combining model probability, benchmark opportunity gap, and audience impression volume into a composite priority score, we generated a ranked operational playbook flagging <strong>2,883 high-leverage pages</strong> for immediate title/meta optimization. All conclusions are framed as observational decision-support tools for human editorial triage rather than causal search algorithm guarantees.
-            </p>
-        </div>
-
-        <!-- Metric Cards -->
-        <div class="stat-grid">
-            <div class="stat-card">
-                <div class="stat-label">Model Precision@20</div>
-                <div class="stat-value text-emerald">100.0%</div>
-                <div class="stat-sub">vs 45.0% Rule Baseline</div>
+            <!-- Abstract -->
+            <div class="abstract-container" id="abstract">
+                <div class="abstract-heading">
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Abstract
+                </div>
+                <p class="abstract-body">
+                    High-ranking organic search content frequently under-captures click-through rate (CTR) due to sub-optimal title tags and meta descriptions, yet manual auditing across large enterprise catalogs is economically intractable. We trained a Random Forest classification model on <strong>60,088 page-month observations</strong> across <strong>28 anonymized enterprise clients</strong> from the FlyRank ML Internship dataset, engineering six leakage-free historical features from January 2026 to predict February month-over-month CTR improvement (≥10% gain). Evaluated on a strictly client-grouped holdout partition (6 unseen clients, 15,970 pages), the model achieved <strong>100.0% Precision@20</strong> and an <strong>ROC-AUC of 0.902</strong>, substantially outperforming the rule-based heuristic baseline (Precision@20 of 45.0%, ROC-AUC of 0.613). By combining model probability, benchmark opportunity gap, and audience impression volume into a composite priority score, we generated a ranked operational playbook flagging <strong>2,883 high-leverage pages</strong> for immediate title/meta optimization. All conclusions are framed as observational decision-support tools for human editorial triage rather than causal search algorithm guarantees.
+                </p>
             </div>
-            <div class="stat-card">
-                <div class="stat-label">Model ROC-AUC</div>
-                <div class="stat-value text-accent">0.902</div>
-                <div class="stat-sub">vs 0.613 Rule Baseline</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Top Sprint Action Queue</div>
-                <div class="stat-value" style="color: #fb7185;">2,883</div>
-                <div class="stat-sub">High-confidence rewrites (4.8%)</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Verified Test Set</div>
-                <div class="stat-value font-mono">15,970</div>
-                <div class="stat-sub">Pages across 6 held-out clients</div>
-            </div>
-        </div>
 
-        <!-- Section 1: Introduction -->
-        <section id="introduction">
-            <h2>1. Introduction & Problem Statement</h2>
-            <p>
-                In enterprise organic search operations, publishing new content is only half the battle. Mature digital estates possess thousands of indexable URLs ranking on Page 1 or in striking distance (positions 4–20) that fail to capture expected click volumes. In many instances, click depression is driven by poorly formatted, truncated, or intent-misaligned snippet metadata (title tags and meta descriptions) that fails to incentivize user clicks on the Search Engine Results Page (SERP).
-            </p>
-            <p>
-                <strong>The Decision Supported:</strong> Editorial teams have constrained writing bandwidth. When presented with a catalog of 50,000 URLs, an editor must answer: <em>"Which 25 to 50 pages should our writers rewrite this sprint to yield the greatest organic traffic recovery?"</em>
-            </p>
-            <p>
-                <strong>Cost of Error:</strong> Prioritizing the wrong pages consumes valuable writer hours on content where click depression is structurally fixed by SERP layout features (e.g., zero-click AI Overviews or navigational intent). Conversely, failing to flag high-headroom pages leaves recoverable high-intent organic traffic stranded.
-            </p>
-        </section>
-
-        <!-- Section 2: Data -->
-        <section id="data">
-            <h2>2. Data & Public Safety Guardrails</h2>
-            <p>
-                This work is built upon the <strong>FlyRank ML Internship Dataset</strong>, a multi-tenant enterprise search performance warehouse released via Hugging Face. The core telemetry resides in the monthly-partitioned <code>fact_content_daily_performance</code> table.
-            </p>
-            <h3>Temporal Segmentation & Volume Floors</h3>
-            <p>
-                To maintain strict methodological integrity and eliminate temporal leakage, data was segmented into non-overlapping monthly observation windows:
-            </p>
-            <ul>
-                <li><strong>Feature Window (History):</strong> January 1, 2026 – January 31, 2026 (31 days). Used strictly to calculate baseline CTR, impression volume, ranking position, and trajectory.</li>
-                <li><strong>Label Window (Future Outcome):</strong> February 1, 2026 – February 28, 2026 (28 days). Used strictly to evaluate actual future CTR shifts.</li>
-                <li><strong>Volume Floor (≥100 Impressions):</strong> Content items with fewer than 100 cumulative impressions in either window were pruned. Low-volume pages exhibit extreme binomial variance where a single stray click can distort measured CTR by hundreds of percent.</li>
-                <li><strong>Public-Safe Privacy:</strong> All client identifiers (<code>client_hash_id</code>) and content items (<code>content_hash_id</code>) are cryptographic hashes. Zero proprietary query strings, internal URLs, or client domains are exposed.</li>
-            </ul>
-
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Position Tier</th>
-                            <th>Rank Range</th>
-                            <th class="text-right">Pages</th>
-                            <th class="text-right">Median Impressions</th>
-                            <th class="text-right">Baseline CTR</th>
-                            <th class="text-right">Expected Benchmark</th>
-                            <th class="text-right">Observed Improvement Rate</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><span class="tier-pill tier-page_1">Page 1</span></td>
-                            <td>Positions 4–10</td>
-                            <td class="text-right font-mono">31,630</td>
-                            <td class="text-right">389</td>
-                            <td class="text-right">0.65%</td>
-                            <td class="text-right font-semibold">0.65%</td>
-                            <td class="text-right">55.0%</td>
-                        </tr>
-                        <tr>
-                            <td><span class="tier-pill tier-top_3">Top 3</span></td>
-                            <td>Positions 1–3</td>
-                            <td class="text-right font-mono">8,603</td>
-                            <td class="text-right">841</td>
-                            <td class="text-right">2.76%</td>
-                            <td class="text-right font-semibold">2.76%</td>
-                            <td class="text-right">60.5%</td>
-                        </tr>
-                        <tr>
-                            <td><span class="tier-pill tier-striking">Striking Distance</span></td>
-                            <td>Positions 11–20</td>
-                            <td class="text-right font-mono">6,655</td>
-                            <td class="text-right">245</td>
-                            <td class="text-right">0.32%</td>
-                            <td class="text-right font-semibold">0.32%</td>
-                            <td class="text-right">56.5%</td>
-                        </tr>
-                        <tr>
-                            <td><span class="tier-pill">Deep SERP</span></td>
-                            <td>Positions > 20</td>
-                            <td class="text-right font-mono">13,198</td>
-                            <td class="text-right">182</td>
-                            <td class="text-right">0.18%</td>
-                            <td class="text-right font-semibold">0.18%</td>
-                            <td class="text-right">68.6%</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <!-- Metric Highlights -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-title">Model Precision@20</div>
+                    <div class="kpi-number text-emerald">100.0%</div>
+                    <div class="kpi-delta">vs 45.0% Rule Baseline</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Model ROC-AUC</div>
+                    <div class="kpi-number text-accent">0.902</div>
+                    <div class="kpi-delta">vs 0.613 Rule Baseline</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Top Action Queue</div>
+                    <div class="kpi-number" style="color: #fb7185;">2,883</div>
+                    <div class="kpi-delta">High-confidence rewrites (4.8%)</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Verified Test Set</div>
+                    <div class="kpi-number font-mono">15,970</div>
+                    <div class="kpi-delta">Pages from 6 unseen clients</div>
+                </div>
             </div>
-        </section>
 
-        <!-- Section 3: Methodology -->
-        <section id="methodology">
-            <h2>3. Methodology & Validation Design</h2>
-            <p>
-                We formulate snippet prioritization as a supervised <strong>ranking problem</strong>. We model the binary classification probability that an underperforming page will experience a meaningful positive CTR shift in the future month:
-            </p>
-            <pre><code>Target Definition:
+            <!-- Section 1 -->
+            <section id="introduction">
+                <h2><span class="sec-num">01</span> Introduction & Problem Statement</h2>
+                <p>
+                    In enterprise organic search operations, publishing new content is only half the battle. Mature digital estates possess thousands of indexable URLs ranking on Page 1 or in striking distance (positions 4–20) that fail to capture expected click volumes. In many instances, click depression is driven by poorly formatted, truncated, or intent-misaligned snippet metadata (title tags and meta descriptions) that fails to incentivize user clicks on the Search Engine Results Page (SERP).
+                </p>
+                <p>
+                    <strong>The Decision Supported:</strong> Editorial teams have constrained writing bandwidth. When presented with a catalog of 50,000 URLs, an editor must answer: <em>"Which 25 to 50 pages should our writers rewrite this sprint to yield the greatest organic traffic recovery?"</em>
+                </p>
+                <p>
+                    <strong>Cost of Error:</strong> Prioritizing the wrong pages consumes valuable writer hours on content where click depression is structurally fixed by SERP layout features (e.g., zero-click AI Overviews or navigational intent). Conversely, failing to flag high-headroom pages leaves recoverable high-intent organic traffic stranded.
+                </p>
+            </section>
+
+            <!-- Section 2 -->
+            <section id="data">
+                <h2><span class="sec-num">02</span> Data & Public Safety Guardrails</h2>
+                <p>
+                    This work is built upon the <strong>FlyRank ML Internship Dataset</strong>, a multi-tenant enterprise search performance warehouse released via Hugging Face. The core telemetry resides in the monthly-partitioned <code>fact_content_daily_performance</code> table.
+                </p>
+                <h3>Temporal Segmentation & Volume Floors</h3>
+                <ul>
+                    <li><strong>Feature Window (History):</strong> January 1, 2026 – January 31, 2026 (31 days). Used strictly to calculate baseline CTR, impression volume, ranking position, and trajectory.</li>
+                    <li><strong>Label Window (Future Outcome):</strong> February 1, 2026 – February 28, 2026 (28 days). Used strictly to evaluate actual future CTR shifts.</li>
+                    <li><strong>Volume Floor (≥100 Impressions):</strong> Content items with fewer than 100 cumulative impressions in either window were pruned. Low-volume pages exhibit extreme binomial variance where a single stray click can distort measured CTR by hundreds of percent.</li>
+                    <li><strong>Public-Safe Privacy:</strong> All client identifiers (<code>client_hash_id</code>) and content items (<code>content_hash_id</code>) are cryptographic hashes. Zero proprietary query strings, internal URLs, or client domains are exposed.</li>
+                </ul>
+
+                <div class="table-card">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Position Tier</th>
+                                    <th>Rank Range</th>
+                                    <th class="text-right">Pages</th>
+                                    <th class="text-right">Median Impressions</th>
+                                    <th class="text-right">Baseline CTR</th>
+                                    <th class="text-right">Expected Benchmark</th>
+                                    <th class="text-right">Observed Improvement Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="tier-tag tier-page_1">Page 1</span></td>
+                                    <td>Positions 4–10</td>
+                                    <td class="text-right font-mono">31,630</td>
+                                    <td class="text-right">389</td>
+                                    <td class="text-right">0.65%</td>
+                                    <td class="text-right font-bold text-accent">0.65%</td>
+                                    <td class="text-right">55.0%</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="tier-tag tier-top_3">Top 3</span></td>
+                                    <td>Positions 1–3</td>
+                                    <td class="text-right font-mono">8,603</td>
+                                    <td class="text-right">841</td>
+                                    <td class="text-right">2.76%</td>
+                                    <td class="text-right font-bold text-accent">2.76%</td>
+                                    <td class="text-right">60.5%</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="tier-tag tier-striking">Striking Distance</span></td>
+                                    <td>Positions 11–20</td>
+                                    <td class="text-right font-mono">6,655</td>
+                                    <td class="text-right">245</td>
+                                    <td class="text-right">0.32%</td>
+                                    <td class="text-right font-bold text-accent">0.32%</td>
+                                    <td class="text-right">56.5%</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="tier-tag">Deep SERP</span></td>
+                                    <td>Positions > 20</td>
+                                    <td class="text-right font-mono">13,198</td>
+                                    <td class="text-right">182</td>
+                                    <td class="text-right">0.18%</td>
+                                    <td class="text-right font-bold text-accent">0.18%</td>
+                                    <td class="text-right">68.6%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 3 -->
+            <section id="methodology">
+                <h2><span class="sec-num">03</span> Methodology & Validation Design</h2>
+                <p>
+                    We formulate snippet prioritization as a supervised <strong>ranking problem</strong>. We model the binary classification probability that an underperforming page will experience a meaningful positive CTR shift in the future month:
+                </p>
+                <pre><code>Target Formulation:
 label_ctr   = SUM(clicks_Feb) / SUM(impressions_Feb)
 feat_ctr    = SUM(clicks_Jan) / SUM(impressions_Jan)
 
 ctr_improved = 1  if label_ctr >= feat_ctr * 1.10  (>=10% relative CTR lift)
              = 0  otherwise</code></pre>
 
-            <h3>Leakage-Free Feature Architecture (Strictly Jan 2026 Signals)</h3>
-            <ul>
-                <li><code>feat_ctr</code>: Baseline January click-through rate.</li>
-                <li><code>opportunity_gap</code>: Headroom distance beneath expected tier benchmark (tier_expected_ctr - feat_ctr).</li>
-                <li><code>ctr_trend</code>: Linear regression slope of daily CTR within January.</li>
-                <li><code>log_impressions</code>: Audience scale weight (ln(1 + total_impressions)).</li>
-                <li><code>avg_position</code>: Mean organic SERP ranking position across all query impressions.</li>
-                <li><code>days_active</code>: Number of days with active impressions during the 31-day feature window.</li>
-            </ul>
+                <h3>Leakage-Free Feature Architecture (Strictly Jan 2026 Signals)</h3>
+                <ul>
+                    <li><code>feat_ctr</code>: Baseline historical January click-through rate.</li>
+                    <li><code>opportunity_gap</code>: Headroom distance beneath expected tier benchmark: max(0, tier_expected_ctr - feat_ctr).</li>
+                    <li><code>ctr_trend</code>: Linear regression slope of daily CTR within January.</li>
+                    <li><code>log_impressions</code>: Audience scale weight (ln(1 + total_impressions)).</li>
+                    <li><code>avg_position</code>: Mean organic SERP ranking position across all query impressions.</li>
+                    <li><code>days_active</code>: Number of days with active impressions during the 31-day feature window.</li>
+                </ul>
 
-            <h3>Client-Grouped Validation Design</h3>
-            <p>
-                Standard k-fold random splits leak client-specific domain authority, brand affinity, and URL structural templates between train and test splits. To ensure the model generalizes across enterprise boundaries, we enforced a strict <strong>Client-Grouped Split</strong> (<code>GroupShuffleSplit</code>, 80/20, <code>random_state=42</code>):
-            </p>
-            <ul>
-                <li><strong>Train Cohort:</strong> 22 enterprise clients (44,118 pages, positive base rate: 57.9%).</li>
-                <li><strong>Test Cohort:</strong> 6 held-out enterprise clients (15,970 pages, positive base rate: 62.0%).</li>
-                <li><strong>Client Overlap:</strong> Zero client overlap (0.0% leakage).</li>
-            </ul>
-        </section>
+                <h3>Client-Grouped Validation Design</h3>
+                <p>
+                    Standard k-fold random splits leak client-specific domain authority, brand affinity, and URL structural templates between train and test splits. To ensure the model generalizes across enterprise boundaries, we enforced a strict <strong>Client-Grouped Split</strong> (<code>GroupShuffleSplit</code>, 80/20, <code>random_state=42</code>):
+                </p>
+                <ul>
+                    <li><strong>Train Cohort:</strong> 22 enterprise clients (44,118 pages, positive base rate: 57.9%).</li>
+                    <li><strong>Test Cohort:</strong> 6 held-out enterprise clients (15,970 pages, positive base rate: 62.0%).</li>
+                    <li><strong>Client Overlap:</strong> Zero client overlap (0.0% leakage).</li>
+                </ul>
+            </section>
 
-        <!-- Section 4: Results -->
-        <section id="results">
-            <h2>4. Empirical Results vs. Baseline</h2>
-            <p>
-                We benchmarked the Random Forest classifier against a transparent rule-based heuristic baseline (Week 4 formulation: <code>score = opportunity_gap * ln(1 + impressions)</code>) and an L2-regularized Logistic Regression model on the exact same 15,970 test pages from held-out clients.
-            </p>
+            <!-- Section 4 -->
+            <section id="results">
+                <h2><span class="sec-num">04</span> Empirical Results vs. Baseline</h2>
+                <p>
+                    We benchmarked the Random Forest classifier against a transparent rule-based heuristic baseline (Week 4 formulation: score = opportunity_gap * ln(1 + impressions)) and an L2-regularized Logistic Regression model on the exact same 15,970 test pages from held-out clients.
+                </p>
 
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Model / Method</th>
-                            <th class="text-right">Base Rate</th>
-                            <th class="text-right">Precision@20</th>
-                            <th class="text-right">Precision@50</th>
-                            <th class="text-right">Avg Precision (AP)</th>
-                            <th class="text-right">ROC-AUC</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Base Rate (Random Guessing)</td>
-                            <td class="text-right font-mono">62.0%</td>
-                            <td class="text-right font-mono">62.0%</td>
-                            <td class="text-right font-mono">62.0%</td>
-                            <td class="text-right font-mono">62.0%</td>
-                            <td class="text-right font-mono">0.500</td>
-                        </tr>
-                        <tr>
-                            <td>Rule Baseline (Week 4 Heuristic)</td>
-                            <td class="text-right font-mono">62.0%</td>
-                            <td class="text-right font-mono" style="color: #fb7185;">45.0%</td>
-                            <td class="text-right font-mono" style="color: #fb7185;">42.0%</td>
-                            <td class="text-right font-mono">66.8%</td>
-                            <td class="text-right font-mono">0.613</td>
-                        </tr>
-                        <tr>
-                            <td>Logistic Regression (Linear)</td>
-                            <td class="text-right font-mono">62.0%</td>
-                            <td class="text-right font-mono text-emerald font-bold">100.0%</td>
-                            <td class="text-right font-mono text-emerald font-bold">100.0%</td>
-                            <td class="text-right font-mono">93.8%</td>
-                            <td class="text-right font-mono">0.880</td>
-                        </tr>
-                        <tr class="highlight-row">
-                            <td><strong>Random Forest Classifier (Final)</strong></td>
-                            <td class="text-right font-mono">62.0%</td>
-                            <td class="text-right font-mono text-emerald font-bold">100.0%</td>
-                            <td class="text-right font-mono text-emerald font-bold">100.0%</td>
-                            <td class="text-right font-mono font-bold text-accent">94.8%</td>
-                            <td class="text-right font-mono font-bold text-accent">0.902</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="callout">
-                <div class="callout-title">Critical Insight: Why the Heuristic Baseline Failed</div>
-                The rule-based baseline scored <strong>worse than random guessing</strong> at Precision@20 (45.0% vs. 62.0% base rate). Because it multiplied raw gap by log-impressions, it promoted massive-volume Page 1 head queries where click depression was fixed by zero-click SERP layouts (AI Overviews, Knowledge Panels) rather than snippet quality. The Random Forest learned the non-linear interaction between initial starting CTR headroom and position tier, successfully filtering out dead-end outliers.
-            </div>
-
-            <!-- Figures Grid -->
-            <div class="figure-box">
-                <img src="assets/action_distribution.png" alt="Action Allocation Distribution" class="figure-img">
-                <div class="figure-caption">
-                    <strong>Figure 1: Action Allocation Distribution across 60k Scored Pages.</strong> 
-                    Only 4.8% (2,883 pages) are recommended for immediate high-confidence snippet rewrites, preventing editorial backlog overwhelm.
+                <div class="table-card">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Model / Method</th>
+                                    <th class="text-right">Base Rate</th>
+                                    <th class="text-right">Precision@20</th>
+                                    <th class="text-right">Precision@50</th>
+                                    <th class="text-right">Avg Precision (AP)</th>
+                                    <th class="text-right">ROC-AUC</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Base Rate (Random Guessing)</td>
+                                    <td class="text-right font-mono">62.0%</td>
+                                    <td class="text-right font-mono">62.0%</td>
+                                    <td class="text-right font-mono">62.0%</td>
+                                    <td class="text-right font-mono">62.0%</td>
+                                    <td class="text-right font-mono">0.500</td>
+                                </tr>
+                                <tr>
+                                    <td>Rule Baseline (Week 4 Heuristic)</td>
+                                    <td class="text-right font-mono">62.0%</td>
+                                    <td class="text-right font-mono" style="color: #fb7185;">45.0%</td>
+                                    <td class="text-right font-mono" style="color: #fb7185;">42.0%</td>
+                                    <td class="text-right font-mono">66.8%</td>
+                                    <td class="text-right font-mono">0.613</td>
+                                </tr>
+                                <tr>
+                                    <td>Logistic Regression (Linear)</td>
+                                    <td class="text-right font-mono">62.0%</td>
+                                    <td class="text-right font-mono text-emerald font-bold">100.0%</td>
+                                    <td class="text-right font-mono text-emerald font-bold">100.0%</td>
+                                    <td class="text-right font-mono">93.8%</td>
+                                    <td class="text-right font-mono">0.880</td>
+                                </tr>
+                                <tr class="row-winner">
+                                    <td><strong>Random Forest Classifier (Final)</strong></td>
+                                    <td class="text-right font-mono">62.0%</td>
+                                    <td class="text-right font-mono text-emerald font-bold">100.0%</td>
+                                    <td class="text-right font-mono text-emerald font-bold">100.0%</td>
+                                    <td class="text-right font-mono font-bold text-accent">94.8%</td>
+                                    <td class="text-right font-mono font-bold text-accent">0.902</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
 
-            <div class="figure-box">
-                <img src="assets/priority_score_by_tier.png" alt="Priority Score Distribution by Position Tier" class="figure-img">
-                <div class="figure-caption">
-                    <strong>Figure 2: Priority Score Distribution by Position Tier.</strong> 
-                    Highest actionable priority scores concentrate in Top 3 and Striking Distance tiers where organic CTR elasticity is steepest.
+                <div class="callout-insight">
+                    <div class="callout-insight-title">Critical Insight: Why the Heuristic Baseline Failed</div>
+                    The rule-based baseline scored <strong>worse than random guessing</strong> at Precision@20 (45.0% vs. 62.0% base rate). Because it multiplied raw gap by log-impressions, it promoted massive-volume Page 1 head queries where click depression was fixed by zero-click SERP layouts (AI Overviews, Knowledge Panels) rather than snippet quality. The Random Forest learned the non-linear interaction between initial starting CTR headroom and position tier, successfully filtering out dead-end outliers.
                 </div>
-            </div>
 
-            <div class="figure-box">
-                <img src="assets/rf_prob_distribution.png" alt="Random Forest Probability Distribution" class="figure-img">
-                <div class="figure-caption">
-                    <strong>Figure 3: Random Forest Probability Calibration & Cutoff Thresholds.</strong> 
-                    Clear multi-modal separation enables high confidence filtering at the 0.70 probability threshold.
+                <!-- Figures -->
+                <div class="figure-card">
+                    <div class="figure-img-wrapper">
+                        <img src="assets/action_distribution.png" alt="Action Allocation Distribution" class="figure-img">
+                    </div>
+                    <div class="figure-meta">
+                        <strong>Figure 1: Action Allocation Distribution across 60k Scored Pages.</strong> 
+                        Only 4.8% (2,883 pages) are recommended for immediate high-confidence snippet rewrites, preventing editorial backlog overwhelm.
+                    </div>
                 </div>
-            </div>
-        </section>
 
-        <!-- Section 5: Limitations -->
-        <section id="limitations">
-            <h2>5. Methodological Limitations & Non-Claims</h2>
-            <p>
-                Rigorous machine learning research requires explicit documentation of epistemic boundaries:
-            </p>
-            <ul>
-                <li><strong>Observational Association != Causal Proof:</strong> The model identifies cohorts of content historically associated with positive CTR recovery. We make <em>zero claims</em> that rewriting a snippet is guaranteed to cause traffic growth without a randomized controlled A/B test.</li>
-                <li><strong>No Search Algorithm Reverse-Engineering:</strong> This system does not claim to simulate, predict, or decode Google's proprietary search ranking algorithms. It is strictly a triage tool for enterprise workflows.</li>
-                <li><strong>SERP Layout Opacity:</strong> Impression logs lack direct layout labels for rich SERP features (e.g., AI Overviews, Featured Snippets, Local Packs). Click depression caused by rich features remains an unobserved confounding factor.</li>
-                <li><strong>Floor Constraints:</strong> Inferences are valid only for content with >= 100 impressions per observation window.</li>
-            </ul>
-        </section>
-
-        <!-- Section 6: Action Playbook -->
-        <section id="playbook">
-            <h2>6. Ranked Action Playbook & Recommendations</h2>
-            <p>
-                To translate model inference into an operational workflow, we score each URL using the composite <strong>Priority Score</strong>:
-            </p>
-            <pre><code>Priority Score = rf_prob * opportunity_gap * ln(1 + total_impressions)</code></pre>
-
-            <h3>Top 20 Ranked Priority Queue (Sample)</h3>
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th class="text-center">Rank</th>
-                            <th>Content Hash</th>
-                            <th>Position Tier</th>
-                            <th class="text-right">Avg Pos</th>
-                            <th class="text-right">Impressions</th>
-                            <th class="text-right">Base CTR</th>
-                            <th class="text-right">Gap</th>
-                            <th class="text-right">RF Prob</th>
-                            <th class="text-right">Priority</th>
-                            <th>Action Label</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        
-    <tr>
-        <td class="text-center font-mono font-bold">1</td>
-        <td class="font-mono text-muted">content_06d45e...</td>
-        <td><span class="tier-pill tier-top_3">top 3</span></td>
-        <td class="text-right">1.7</td>
-        <td class="text-right">16,041</td>
-        <td class="text-right">0.00%</td>
-        <td class="text-right text-emerald font-semibold">+2.76pp</td>
-        <td class="text-right font-mono">0.946</td>
-        <td class="text-right font-bold text-accent font-mono">25.32</td>
-        <td><span class="badge badge-rewrite">Rewrite Title And Meta</span></td>
-    </tr>
-    
-    <tr>
-        <td class="text-center font-mono font-bold">2</td>
-        <td class="font-mono text-muted">content_39bb09...</td>
-        <td><span class="tier-pill tier-top_3">top 3</span></td>
-        <td class="text-right">1.3</td>
-        <td class="text-right">5,552</td>
-        <td class="text-right">0.00%</td>
-        <td class="text-right text-emerald font-semibold">+2.76pp</td>
-        <td class="text-right font-mono">0.973</td>
-        <td class="text-right font-bold text-accent font-mono">23.18</td>
-        <td><span class="badge badge-rewrite">Rewrite Title And Meta</span></td>
-    </tr>
-    
-    <tr>
-        <td class="text-center font-mono font-bold">3</td>
-        <td class="font-mono text-muted">content_c02399...</td>
-        <td><span class="tier-pill tier-top_3">top 3</span></td>
-        <td class="text-right">3.0</td>
-        <td class="text-right">5,360</td>
-        <td class="text-right">0.00%</td>
-        <td class="text-right text-emerald font-semibold">+2.76pp</td>
-        <td class="text-right font-mono">0.969</td>
-        <td class="text-right font-bold text-accent font-mono">23.00</td>
-        <td><span class="badge badge-rewrite">Rewrite Title And Meta</span></td>
-    </tr>
-    
-    <tr>
-        <td class="text-center font-mono font-bold">4</td>
-        <td class="font-mono text-muted">content_b42b2d...</td>
-        <td><span class="tier-pill tier-top_3">top 3</span></td>
-        <td class="text-right">0.2</td>
-        <td class="text-right">5,215</td>
-        <td class="text-right">0.00%</td>
-        <td class="text-right text-emerald font-semibold">+2.76pp</td>
-        <td class="text-right font-mono">0.966</td>
-        <td class="text-right font-bold text-accent font-mono">22.86</td>
-        <td><span class="badge badge-rewrite">Rewrite Title And Meta</span></td>
-    </tr>
-    
-    <tr>
-        <td class="text-center font-mono font-bold">5</td>
-        <td class="font-mono text-muted">content_94ea77...</td>
-        <td><span class="tier-pill tier-top_3">top 3</span></td>
-        <td class="text-right">0.4</td>
-        <td class="text-right">4,776</td>
-        <td class="text-right">0.00%</td>
-        <td class="text-right text-emerald font-semibold">+2.76pp</td>
-        <td class="text-right font-mono">0.972</td>
-        <td class="text-right font-bold text-accent font-mono">22.77</td>
-        <td><span class="badge badge-rewrite">Rewrite Title And Meta</span></td>
-    </tr>
-    
-    <tr>
-        <td class="text-center font-mono font-bold">6</td>
-        <td class="font-mono text-muted">content_d34f15...</td>
-        <td><span class="tier-pill tier-top_3">top 3</span></td>
-        <td class="text-right">0.6</td>
-        <td class="text-right">4,574</td>
-        <td class="text-right">0.00%</td>
-        <td class="text-right text-emerald font-semibold">+2.76pp</td>
-        <td class="text-right font-mono">0.973</td>
-        <td class="text-right font-bold text-accent font-mono">22.66</td>
-        <td><span class="badge badge-rewrite">Rewrite Title And Meta</span></td>
-    </tr>
-    
-    <tr>
-        <td class="text-center font-mono font-bold">7</td>
-        <td class="font-mono text-muted">content_df1a66...</td>
-        <td><span class="tier-pill tier-top_3">top 3</span></td>
-        <td class="text-right">2.9</td>
-        <td class="text-right">4,709</td>
-        <td class="text-right">0.00%</td>
-        <td class="text-right text-emerald font-semibold">+2.76pp</td>
-        <td class="text-right font-mono">0.968</td>
-        <td class="text-right font-bold text-accent font-mono">22.64</td>
-        <td><span class="badge badge-rewrite">Rewrite Title And Meta</span></td>
-    </tr>
-    
-    <tr>
-        <td class="text-center font-mono font-bold">8</td>
-        <td class="font-mono text-muted">content_aaf17d...</td>
-        <td><span class="tier-pill tier-top_3">top 3</span></td>
-        <td class="text-right">2.4</td>
-        <td class="text-right">4,707</td>
-        <td class="text-right">0.00%</td>
-        <td class="text-right text-emerald font-semibold">+2.76pp</td>
-        <td class="text-right font-mono">0.968</td>
-        <td class="text-right font-bold text-accent font-mono">22.64</td>
-        <td><span class="badge badge-rewrite">Rewrite Title And Meta</span></td>
-    </tr>
-    
-    <tr>
-        <td class="text-center font-mono font-bold">9</td>
-        <td class="font-mono text-muted">content_8a4dd8...</td>
-        <td><span class="tier-pill tier-top_3">top 3</span></td>
-        <td class="text-right">2.7</td>
-        <td class="text-right">4,573</td>
-        <td class="text-right">0.00%</td>
-        <td class="text-right text-emerald font-semibold">+2.76pp</td>
-        <td class="text-right font-mono">0.969</td>
-        <td class="text-right font-bold text-accent font-mono">22.57</td>
-        <td><span class="badge badge-rewrite">Rewrite Title And Meta</span></td>
-    </tr>
-    
-    <tr>
-        <td class="text-center font-mono font-bold">10</td>
-        <td class="font-mono text-muted">content_c7a23d...</td>
-        <td><span class="tier-pill tier-top_3">top 3</span></td>
-        <td class="text-right">1.8</td>
-        <td class="text-right">4,558</td>
-        <td class="text-right">0.00%</td>
-        <td class="text-right text-emerald font-semibold">+2.76pp</td>
-        <td class="text-right font-mono">0.969</td>
-        <td class="text-right font-bold text-accent font-mono">22.56</td>
-        <td><span class="badge badge-rewrite">Rewrite Title And Meta</span></td>
-    </tr>
-    
-    <tr>
-        <td class="text-center font-mono font-bold">11</td>
-        <td class="font-mono text-muted">content_5f6642...</td>
-        <td><span class="tier-pill tier-top_3">top 3</span></td>
-        <td class="text-right">2.6</td>
-        <td class="text-right">4,448</td>
-        <td class="text-right">0.00%</td>
-        <td class="text-right text-emerald font-semibold">+2.76pp</td>
-        <td class="text-right font-mono">0.970</td>
-        <td class="text-right font-bold text-accent font-mono">22.53</td>
-        <td><span class="badge badge-rewrite">Rewrite Title And Meta</span></td>
-    </tr>
-    
-    <tr>
-        <td class="text-center font-mono font-bold">12</td>
-        <td class="font-mono text-muted">content_57ede7...</td>
-        <td><span class="tier-pill tier-top_3">top 3</span></td>
-        <td class="text-right">2.4</td>
-        <td class="text-right">4,396</td>
-        <td class="text-right">0.00%</td>
-        <td class="text-right text-emerald font-semibold">+2.76pp</td>
-        <td class="text-right font-mono">0.970</td>
-        <td class="text-right font-bold text-accent font-mono">22.50</td>
-        <td><span class="badge badge-rewrite">Rewrite Title And Meta</span></td>
-    </tr>
-    
-    <tr>
-        <td class="text-center font-mono font-bold">13</td>
-        <td class="font-mono text-muted">content_6c8815...</td>
-        <td><span class="tier-pill tier-top_3">top 3</span></td>
-        <td class="text-right">1.0</td>
-        <td class="text-right">4,097</td>
-        <td class="text-right">0.00%</td>
-        <td class="text-right text-emerald font-semibold">+2.76pp</td>
-        <td class="text-right font-mono">0.976</td>
-        <td class="text-right font-bold text-accent font-mono">22.44</td>
-        <td><span class="badge badge-rewrite">Rewrite Title And Meta</span></td>
-    </tr>
-    
-    <tr>
-        <td class="text-center font-mono font-bold">14</td>
-        <td class="font-mono text-muted">content_f9e04e...</td>
-        <td><span class="tier-pill tier-top_3">top 3</span></td>
-        <td class="text-right">0.5</td>
-        <td class="text-right">4,010</td>
-        <td class="text-right">0.00%</td>
-        <td class="text-right text-emerald font-semibold">+2.76pp</td>
-        <td class="text-right font-mono">0.976</td>
-        <td class="text-right font-bold text-accent font-mono">22.38</td>
-        <td><span class="badge badge-rewrite">Rewrite Title And Meta</span></td>
-    </tr>
-    
-    <tr>
-        <td class="text-center font-mono font-bold">15</td>
-        <td class="font-mono text-muted">content_dbe219...</td>
-        <td><span class="tier-pill tier-top_3">top 3</span></td>
-        <td class="text-right">1.0</td>
-        <td class="text-right">3,993</td>
-        <td class="text-right">0.00%</td>
-        <td class="text-right text-emerald font-semibold">+2.76pp</td>
-        <td class="text-right font-mono">0.976</td>
-        <td class="text-right font-bold text-accent font-mono">22.37</td>
-        <td><span class="badge badge-rewrite">Rewrite Title And Meta</span></td>
-    </tr>
-    
-    <tr>
-        <td class="text-center font-mono font-bold">16</td>
-        <td class="font-mono text-muted">content_33e389...</td>
-        <td><span class="tier-pill tier-top_3">top 3</span></td>
-        <td class="text-right">1.5</td>
-        <td class="text-right">3,956</td>
-        <td class="text-right">0.00%</td>
-        <td class="text-right text-emerald font-semibold">+2.76pp</td>
-        <td class="text-right font-mono">0.976</td>
-        <td class="text-right font-bold text-accent font-mono">22.35</td>
-        <td><span class="badge badge-rewrite">Rewrite Title And Meta</span></td>
-    </tr>
-    
-    <tr>
-        <td class="text-center font-mono font-bold">17</td>
-        <td class="font-mono text-muted">content_25b305...</td>
-        <td><span class="tier-pill tier-top_3">top 3</span></td>
-        <td class="text-right">0.3</td>
-        <td class="text-right">3,943</td>
-        <td class="text-right">0.00%</td>
-        <td class="text-right text-emerald font-semibold">+2.76pp</td>
-        <td class="text-right font-mono">0.975</td>
-        <td class="text-right font-bold text-accent font-mono">22.32</td>
-        <td><span class="badge badge-rewrite">Rewrite Title And Meta</span></td>
-    </tr>
-    
-    <tr>
-        <td class="text-center font-mono font-bold">18</td>
-        <td class="font-mono text-muted">content_2b7e21...</td>
-        <td><span class="tier-pill tier-top_3">top 3</span></td>
-        <td class="text-right">1.9</td>
-        <td class="text-right">4,042</td>
-        <td class="text-right">0.00%</td>
-        <td class="text-right text-emerald font-semibold">+2.76pp</td>
-        <td class="text-right font-mono">0.972</td>
-        <td class="text-right font-bold text-accent font-mono">22.31</td>
-        <td><span class="badge badge-rewrite">Rewrite Title And Meta</span></td>
-    </tr>
-    
-    <tr>
-        <td class="text-center font-mono font-bold">19</td>
-        <td class="font-mono text-muted">content_a49c49...</td>
-        <td><span class="tier-pill tier-top_3">top 3</span></td>
-        <td class="text-right">2.3</td>
-        <td class="text-right">3,944</td>
-        <td class="text-right">0.00%</td>
-        <td class="text-right text-emerald font-semibold">+2.76pp</td>
-        <td class="text-right font-mono">0.972</td>
-        <td class="text-right font-bold text-accent font-mono">22.25</td>
-        <td><span class="badge badge-rewrite">Rewrite Title And Meta</span></td>
-    </tr>
-    
-    <tr>
-        <td class="text-center font-mono font-bold">20</td>
-        <td class="font-mono text-muted">content_ee374c...</td>
-        <td><span class="tier-pill tier-top_3">top 3</span></td>
-        <td class="text-right">0.9</td>
-        <td class="text-right">3,743</td>
-        <td class="text-right">0.00%</td>
-        <td class="text-right text-emerald font-semibold">+2.76pp</td>
-        <td class="text-right font-mono">0.976</td>
-        <td class="text-right font-bold text-accent font-mono">22.21</td>
-        <td><span class="badge badge-rewrite">Rewrite Title And Meta</span></td>
-    </tr>
-    
-                    </tbody>
-                </table>
-            </div>
-
-            <h3>Human-in-the-Loop Protocol & Guardrails</h3>
-            <div class="stat-grid">
-                <div class="stat-card" style="border-left: 3px solid var(--accent-emerald);">
-                    <div class="stat-label" style="color: var(--accent-emerald); font-weight: 700;">Pre-Action Checklist</div>
-                    <ul style="margin: 0.5rem 0 0 1rem; font-size: 0.85rem;">
-                        <li>Verify URL is indexed and active.</li>
-                        <li>Confirm no recent rewrites occurred in CMS.</li>
-                        <li>Audit live SERP for dominant AI Overviews.</li>
-                        <li>Verify search intent (Informational vs Commercial).</li>
-                    </ul>
+                <div class="figure-card">
+                    <div class="figure-img-wrapper">
+                        <img src="assets/priority_score_by_tier.png" alt="Priority Score Distribution by Position Tier" class="figure-img">
+                    </div>
+                    <div class="figure-meta">
+                        <strong>Figure 2: Priority Score Distribution by Position Tier.</strong> 
+                        Highest actionable priority scores concentrate in Top 3 and Striking Distance tiers where organic CTR elasticity is steepest.
+                    </div>
                 </div>
-                <div class="stat-card" style="border-left: 3px solid var(--accent-rose);">
-                    <div class="stat-label" style="color: var(--accent-rose); font-weight: 700;">Strict No-Go List</div>
-                    <ul style="margin: 0.5rem 0 0 1rem; font-size: 0.85rem;">
-                        <li>Never batch-rewrite without human review.</li>
-                        <li>Never score pages with &lt; 100 impressions.</li>
-                        <li>Never apply model to branded/navigational URLs.</li>
-                        <li>Never rewrite <code>no_action</code> benchmark performers.</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
 
-        <!-- Section 7: Reproducibility -->
-        <section id="reproducibility">
-            <h2>7. Reproducibility & Code</h2>
-            <p>
-                All pipelines, queries, model definitions, and validation audits are open-source and reproducible:
-            </p>
-            <ul>
-                <li><strong>GitHub Repository:</strong> <a href="https://github.com/moath177/flyrank" target="_blank" class="credit-link">moath177/flyrank</a></li>
-                <li><strong>Capstone Notebook:</strong> <a href="https://github.com/moath177/flyrank/blob/main/work/notebooks/capstone.ipynb" target="_blank" class="credit-link">work/notebooks/capstone.ipynb</a></li>
-                <li><strong>Action Playbook Notebook:</strong> <a href="https://github.com/moath177/flyrank/blob/main/work/notebooks/w07_action_playbook.ipynb" target="_blank" class="credit-link">work/notebooks/w07_action_playbook.ipynb</a></li>
-                <li><strong>Primary Artifacts:</strong> <a href="assets/action_queue_top100.csv" class="credit-link" download>Download Top 100 Action Queue (CSV)</a></li>
-            </ul>
-            <pre><code># Reproduce end-to-end execution:
-git clone https://github.com/moath177/flyrank.git
+                <div class="figure-card">
+                    <div class="figure-img-wrapper">
+                        <img src="assets/rf_prob_distribution.png" alt="Random Forest Probability Distribution" class="figure-img">
+                    </div>
+                    <div class="figure-meta">
+                        <strong>Figure 3: Random Forest Probability Calibration & Cutoff Thresholds.</strong> 
+                        Clear multi-modal separation enables high confidence filtering at the 0.70 probability threshold.
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 5 -->
+            <section id="limitations">
+                <h2><span class="sec-num">05</span> Methodological Limitations & Non-Claims</h2>
+                <p>
+                    Rigorous machine learning research requires explicit documentation of epistemic boundaries:
+                </p>
+                <ul>
+                    <li><strong>Observational Association ≠ Causal Proof:</strong> The model identifies cohorts of content historically associated with positive CTR recovery. We make <em>zero claims</em> that rewriting a snippet is guaranteed to cause traffic growth without a randomized controlled A/B test.</li>
+                    <li><strong>No Search Algorithm Reverse-Engineering:</strong> This system does not claim to simulate, predict, or decode Google's proprietary search ranking algorithms. It is strictly a triage tool for enterprise workflows.</li>
+                    <li><strong>SERP Layout Opacity:</strong> Impression logs lack direct layout labels for rich SERP features (e.g., AI Overviews, Featured Snippets, Local Packs). Click depression caused by rich features remains an unobserved confounding factor.</li>
+                    <li><strong>Floor Constraints:</strong> Inferences are valid only for content with >= 100 impressions per observation window.</li>
+                </ul>
+            </section>
+
+            <!-- Section 6 -->
+            <section id="playbook">
+                <h2><span class="sec-num">06</span> Ranked Action Playbook & Interactive Queue</h2>
+                <p>
+                    To translate model inference into an operational workflow, we score each URL using the composite <strong>Priority Score</strong>:
+                </p>
+                
+                <div class="formula-box">
+                    <div class="formula-display">
+                        Priority Score = rf_prob × opportunity_gap × ln(1 + total_impressions)
+                    </div>
+                    <div class="formula-terms">
+                        <div>
+                            <div class="formula-term-title">Model Confidence (rf_prob)</div>
+                            Calibrated probability that page CTR improves ≥10%.
+                        </div>
+                        <div>
+                            <div class="formula-term-title">Headroom (opportunity_gap)</div>
+                            Distance in percentage points below position tier benchmark.
+                        </div>
+                        <div>
+                            <div class="formula-term-title">Scale Weight (ln(1+Imp))</div>
+                            Ensures enterprise high-traffic pages scale in business impact.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Queue Filter -->
+                <div class="table-card">
+                    <div class="explorer-header">
+                        <input type="text" id="queue-search" class="search-box" placeholder="Search content hash...">
+                        <div class="filter-group">
+                            <button class="filter-btn active" data-filter="all">All Tiers</button>
+                            <button class="filter-btn" data-filter="top_3">Top 3</button>
+                            <button class="filter-btn" data-filter="striking">Striking</button>
+                            <button class="filter-btn" data-filter="page_1">Page 1</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Rank</th>
+                                    <th>Content Hash</th>
+                                    <th>Position Tier</th>
+                                    <th class="text-right">Avg Pos</th>
+                                    <th class="text-right">Impressions</th>
+                                    <th class="text-right">Base CTR</th>
+                                    <th class="text-right">Gap</th>
+                                    <th class="text-right">RF Prob</th>
+                                    <th class="text-right">Priority</th>
+                                    <th>Action Label</th>
+                                </tr>
+                            </thead>
+                            <tbody id="queue-tbody">
+                                <!-- Populated dynamically by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <h3>Human-in-the-Loop Protocol & Guardrails</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin: 1.5rem 0 2.5rem;">
+                    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-left: 3px solid var(--emerald-accent); border-radius: var(--radius-md); padding: 1.25rem;">
+                        <div style="font-weight: 700; color: var(--emerald-accent); font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.5rem;">Pre-Action Review Checklist</div>
+                        <ul style="margin: 0.5rem 0 0 1rem; font-size: 0.85rem;">
+                            <li>Verify URL is indexed and live.</li>
+                            <li>Confirm no recent snippet revisions occurred.</li>
+                            <li>Audit live SERP for dominant AI Overviews.</li>
+                            <li>Verify user search intent matches page copy.</li>
+                        </ul>
+                    </div>
+                    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-left: 3px solid var(--rose-accent); border-radius: var(--radius-md); padding: 1.25rem;">
+                        <div style="font-weight: 700; color: var(--rose-accent); font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.5rem;">Strict No-Go List</div>
+                        <ul style="margin: 0.5rem 0 0 1rem; font-size: 0.85rem;">
+                            <li>Never execute batch rewrites without human audit.</li>
+                            <li>Never score content below the 100-impression floor.</li>
+                            <li>Never apply model to branded/navigational URLs.</li>
+                            <li>Never alter <code>no_action</code> benchmark performers.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 7 -->
+            <section id="reproducibility">
+                <h2><span class="sec-num">07</span> Reproducibility & Code</h2>
+                <p>
+                    All pipelines, queries, model definitions, and validation audits are open-source and reproducible:
+                </p>
+                <ul>
+                    <li><strong>GitHub Repository:</strong> <a href="https://github.com/moath177/flyrank" target="_blank" class="credit-link">moath177/flyrank</a></li>
+                    <li><strong>Capstone Notebook:</strong> <a href="https://github.com/moath177/flyrank/blob/main/work/notebooks/capstone.ipynb" target="_blank" class="credit-link">work/notebooks/capstone.ipynb</a></li>
+                    <li><strong>Action Playbook Notebook:</strong> <a href="https://github.com/moath177/flyrank/blob/main/work/notebooks/w07_action_playbook.ipynb" target="_blank" class="credit-link">work/notebooks/w07_action_playbook.ipynb</a></li>
+                    <li><strong>Primary Artifacts:</strong> <a href="assets/action_queue_top100.csv" class="credit-link" download>Download Top 100 Action Queue (CSV)</a></li>
+                </ul>
+
+                <div class="code-header">
+                    <span>REPRODUCE PIPELINE LOCALLY</span>
+                    <button class="btn-copy" onclick="copyCode('clone-block')">Copy Command</button>
+                </div>
+                <pre><code id="clone-block">git clone https://github.com/moath177/flyrank.git
 cd flyrank
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python3 -m nbconvert --to notebook --execute work/notebooks/capstone.ipynb --inplace</code></pre>
-        </section>
 
-        <!-- Section 8: Acknowledgments -->
-        <section id="acknowledgments">
-            <h2>8. Acknowledgments & Data Credit</h2>
-            <p>
-                This research was built on the <strong>FlyRank ML Internship dataset</strong>, provided by <a href="https://flyrank.ai" target="_blank" class="credit-link font-bold">FlyRank</a> (<a href="https://flyrank.ai" target="_blank" class="credit-link">https://flyrank.ai</a>).
-            </p>
-            <p>
-                We thank the FlyRank engineering and machine learning teams for making real-world, multi-client search intelligence telemetry accessible for rigorous academic and applied ML inquiry.
-            </p>
-        </section>
+                <h3>BibTeX Citation</h3>
+                <div class="code-header">
+                    <span>BIBTEX CITATION</span>
+                    <button class="btn-copy" onclick="copyCode('bibtex-block')">Copy BibTeX</button>
+                </div>
+                <pre><code id="bibtex-block">@article{flyrank_ml_capstone_2026,
+  title={Prioritizing Content Snippet Rewrites via Machine-Learned CTR Opportunity Scoring},
+  author={FlyRank ML Intern (moath177)},
+  journal={FlyRank Search Intelligence Research Papers},
+  year={2026},
+  url={https://moath177.github.io/flyrank/}
+}</code></pre>
+            </section>
 
-    </main>
+            <!-- Section 8 -->
+            <section id="acknowledgments">
+                <h2><span class="sec-num">08</span> Acknowledgments & Data Credit</h2>
+                <p>
+                    This research was built on the <strong>FlyRank ML Internship dataset</strong>, provided by <a href="https://flyrank.ai" target="_blank" class="credit-link font-bold">FlyRank</a> (<a href="https://flyrank.ai" target="_blank" class="credit-link">https://flyrank.ai</a>).
+                </p>
+                <p>
+                    We thank the FlyRank engineering and machine learning teams for making real-world, multi-client search intelligence telemetry accessible for rigorous academic and applied ML inquiry.
+                </p>
+            </section>
+
+        </article>
+
+        <!-- Sidebar TOC -->
+        <aside class="toc-sidebar">
+            <div class="toc-title">Table of Contents</div>
+            <ul class="toc-list">
+                <li class="toc-item"><a href="#abstract">Abstract</a></li>
+                <li class="toc-item"><a href="#introduction">1. Introduction</a></li>
+                <li class="toc-item"><a href="#data">2. Data & Cohorts</a></li>
+                <li class="toc-item"><a href="#methodology">3. Methodology</a></li>
+                <li class="toc-item"><a href="#results">4. Empirical Results</a></li>
+                <li class="toc-item"><a href="#limitations">5. Limitations</a></li>
+                <li class="toc-item"><a href="#playbook">6. Action Playbook</a></li>
+                <li class="toc-item"><a href="#reproducibility">7. Reproducibility</a></li>
+                <li class="toc-item"><a href="#acknowledgments">8. Acknowledgments</a></li>
+            </ul>
+        </aside>
+
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast">Copied to clipboard!</div>
 
     <footer>
-        <div class="footer-container">
+        <div class="footer-wrapper">
             <div>
                 &copy; 2026 FlyRank Search Intelligence Capstone &middot; Built on the <a href="https://flyrank.ai" target="_blank" class="credit-link">FlyRank ML Internship dataset</a>.
             </div>
-            <div>
-                <a href="https://github.com/moath177/flyrank" target="_blank" class="credit-link">GitHub Repository</a> &middot; 
+            <div style="display: flex; gap: 1.5rem;">
+                <a href="https://github.com/moath177/flyrank" target="_blank" class="credit-link">GitHub Repository</a>
                 <a href="https://flyrank.ai" target="_blank" class="credit-link">FlyRank.ai</a>
             </div>
         </div>
     </footer>
 
+    <!-- Interactive JS -->
+    <script>
+        const queueData = [{"queue_rank":1,"content_hash_id":"content_06d45e82b3698a77","position_tier":"top_3","avg_position":1.6957390449,"total_impressions":16041.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9459970675,"priority_score":25.3229776478,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":2,"content_hash_id":"content_39bb094b613d554a","position_tier":"top_3","avg_position":1.2588512438,"total_impressions":5552.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9725530301,"priority_score":23.181557887,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":3,"content_hash_id":"content_c0239977f39161a4","position_tier":"top_3","avg_position":2.9784642744,"total_impressions":5360.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9689180996,"priority_score":23.0006633689,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":4,"content_hash_id":"content_b42b2d8b76939b96","position_tier":"top_3","avg_position":0.219104621,"total_impressions":5215.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9658869131,"priority_score":22.8554916136,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":5,"content_hash_id":"content_94ea772ab7347bfe","position_tier":"top_3","avg_position":0.4188208979,"total_impressions":4776.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.972378966,"priority_score":22.7727748302,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":6,"content_hash_id":"content_d34f15f5caa87605","position_tier":"top_3","avg_position":0.6207685808,"total_impressions":4574.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.972642042,"priority_score":22.6627606119,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":7,"content_hash_id":"content_df1a66a4a2abe607","position_tier":"top_3","avg_position":2.8798277352,"total_impressions":4709.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9684655086,"priority_score":22.6433063083,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":8,"content_hash_id":"content_aaf17d425fe492a8","position_tier":"top_3","avg_position":2.3648264436,"total_impressions":4707.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9684655086,"priority_score":22.6421691994,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":9,"content_hash_id":"content_8a4dd8299d900229","position_tier":"top_3","avg_position":2.6962772376,"total_impressions":4573.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9687357789,"priority_score":22.5711584394,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":10,"content_hash_id":"content_c7a23df34c9849b6","position_tier":"top_3","avg_position":1.8392345974,"total_impressions":4558.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9687357789,"priority_score":22.56236153,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":11,"content_hash_id":"content_5f664239a08b85c1","position_tier":"top_3","avg_position":2.59623238,"total_impressions":4448.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9701376875,"priority_score":22.529509007,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":12,"content_hash_id":"content_57ede7d093afcd29","position_tier":"top_3","avg_position":2.4291489585,"total_impressions":4396.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9701376875,"priority_score":22.4979777433,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":13,"content_hash_id":"content_6c88154c20f75633","position_tier":"top_3","avg_position":1.0424013339,"total_impressions":4097.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9757930848,"priority_score":22.4391563693,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":14,"content_hash_id":"content_f9e04ee043a37ad6","position_tier":"top_3","avg_position":0.5072304857,"total_impressions":4010.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9758910471,"priority_score":22.3835173624,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":15,"content_hash_id":"content_dbe21995d2bd211e","position_tier":"top_3","avg_position":0.9938308933,"total_impressions":3993.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9758910471,"priority_score":22.3720586409,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":16,"content_hash_id":"content_33e389c45ee9ea95","position_tier":"top_3","avg_position":1.5410530296,"total_impressions":3956.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9761264181,"priority_score":22.3523393121,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":17,"content_hash_id":"content_25b305a0fbcf1dea","position_tier":"top_3","avg_position":0.2680350833,"total_impressions":3943.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9751712337,"priority_score":22.3215951867,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":18,"content_hash_id":"content_2b7e2125fa5399a1","position_tier":"top_3","avg_position":1.9203127499,"total_impressions":4042.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9716817537,"priority_score":22.3083166798,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":19,"content_hash_id":"content_a49c4955ca7cff42","position_tier":"top_3","avg_position":2.2555437952,"total_impressions":3944.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9720150871,"priority_score":22.2500324661,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":20,"content_hash_id":"content_ee374cbb8f0013cc","position_tier":"top_3","avg_position":0.9009747337,"total_impressions":3743.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9762243805,"priority_score":22.2052551551,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":21,"content_hash_id":"content_03cfb7d7a5f4e0f3","position_tier":"top_3","avg_position":1.8371259504,"total_impressions":3831.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9720150871,"priority_score":22.171938675,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":22,"content_hash_id":"content_5cc6fa5852bf25f1","position_tier":"top_3","avg_position":1.775229083,"total_impressions":3809.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9720150871,"priority_score":22.1564670318,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":23,"content_hash_id":"content_bdad959cc10d182b","position_tier":"top_3","avg_position":0.8999240031,"total_impressions":3610.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9766469157,"priority_score":22.1172098167,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":24,"content_hash_id":"content_de2b6556c330740a","position_tier":"top_3","avg_position":1.5323092505,"total_impressions":3608.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9765489533,"priority_score":22.1134956923,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":25,"content_hash_id":"content_6e443d47e7e3a5e5","position_tier":"top_3","avg_position":1.3095984377,"total_impressions":3603.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9765489533,"priority_score":22.1097529085,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":26,"content_hash_id":"content_f6c5d68d2b39c63a","position_tier":"top_3","avg_position":0.373055577,"total_impressions":3595.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9763510796,"priority_score":22.0992748571,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":27,"content_hash_id":"content_1b86d6e570c74c6d","position_tier":"top_3","avg_position":2.3401166223,"total_impressions":3716.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9720150871,"priority_score":22.0900617339,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":28,"content_hash_id":"content_7fccbffcbcf496d7","position_tier":"top_3","avg_position":2.619933105,"total_impressions":3690.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9720150871,"priority_score":22.0711994727,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":29,"content_hash_id":"content_d4cd394d33151ccf","position_tier":"top_3","avg_position":2.0853641247,"total_impressions":3656.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9724376223,"priority_score":22.0559154996,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":30,"content_hash_id":"content_51f36df59bb6586c","position_tier":"top_3","avg_position":2.1070970034,"total_impressions":3515.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9724376223,"priority_score":21.9502136538,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":31,"content_hash_id":"content_5e118059b0c0b45d","position_tier":"top_3","avg_position":0.5433284594,"total_impressions":3346.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.976980249,"priority_score":21.9197082054,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":32,"content_hash_id":"content_1a870e201af446ff","position_tier":"top_3","avg_position":2.8419262653,"total_impressions":21710.0,"feat_ctr":0.0046061723,"tier_expected_ctr":2.7645,"opportunity_gap":2.7598938277,"rf_prob":0.7950696128,"priority_score":21.9114227962,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":33,"content_hash_id":"content_41057630275dbebb","position_tier":"top_3","avg_position":1.8412274919,"total_impressions":3406.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9724376223,"priority_score":21.8655540174,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":34,"content_hash_id":"content_6a678bd9e9b107ab","position_tier":"top_3","avg_position":2.5330577762,"total_impressions":3403.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9724376223,"priority_score":21.8631858154,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":35,"content_hash_id":"content_5c2be3e461e471b6","position_tier":"top_3","avg_position":2.8297125171,"total_impressions":3358.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9727709556,"priority_score":21.8348921628,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":36,"content_hash_id":"content_d092a737bb522adf","position_tier":"top_3","avg_position":0.7816778133,"total_impressions":3240.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.976980249,"priority_score":21.8327877225,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":37,"content_hash_id":"content_f29dd906bd100eb1","position_tier":"top_3","avg_position":1.2507163434,"total_impressions":3147.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9761807437,"priority_score":21.7363508592,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":38,"content_hash_id":"content_043d9e58fa612f3a","position_tier":"top_3","avg_position":2.6560335677,"total_impressions":3229.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9727709556,"priority_score":21.7295789442,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":39,"content_hash_id":"content_f2b359a332315e9c","position_tier":"top_3","avg_position":0.9736435243,"total_impressions":3116.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9762787061,"priority_score":21.711822734,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":40,"content_hash_id":"content_5deba870c44ad151","position_tier":"top_3","avg_position":0.7071492029,"total_impressions":3065.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9762787061,"priority_score":21.6672980151,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":41,"content_hash_id":"content_4f3379fc429fa1a2","position_tier":"top_3","avg_position":0.5456956359,"total_impressions":3052.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9762787061,"priority_score":21.6558301135,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":42,"content_hash_id":"content_41fa65c3c02ec740","position_tier":"top_3","avg_position":2.6316224547,"total_impressions":3053.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9720694127,"priority_score":21.5633395659,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":43,"content_hash_id":"content_72b67fecb589b641","position_tier":"top_3","avg_position":2.980791813,"total_impressions":3037.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9725458132,"priority_score":21.5597848212,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":44,"content_hash_id":"content_b8b924e3572091d4","position_tier":"top_3","avg_position":2.6360743695,"total_impressions":3033.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9720694127,"priority_score":21.5456832219,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":45,"content_hash_id":"content_53e7a4386a32a32e","position_tier":"top_3","avg_position":0.0362001685,"total_impressions":2941.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9752255594,"priority_score":21.5326221788,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":46,"content_hash_id":"content_7d0e25bd63b12027","position_tier":"top_3","avg_position":1.2414130228,"total_impressions":2900.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9761807437,"priority_score":21.5158391054,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":47,"content_hash_id":"content_ad1235d6bb41c71a","position_tier":"top_3","avg_position":2.2140254715,"total_impressions":2888.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9720694127,"priority_score":21.4140829099,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":48,"content_hash_id":"content_c393d84fa6122eb5","position_tier":"top_3","avg_position":1.5958948112,"total_impressions":2812.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9750794737,"priority_score":21.4085307748,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":49,"content_hash_id":"content_03081e31a746c1fd","position_tier":"top_3","avg_position":0.3074198157,"total_impressions":2729.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9755035996,"priority_score":21.337074411,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":50,"content_hash_id":"content_94cb0c79e66b5b7c","position_tier":"top_3","avg_position":1.882129915,"total_impressions":2797.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9709681426,"priority_score":21.3039120069,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":51,"content_hash_id":"content_276a3fbb91b7c07e","position_tier":"top_3","avg_position":1.1992280106,"total_impressions":2684.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9750794737,"priority_score":21.2829941866,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":52,"content_hash_id":"content_fcd2b7ad554642a4","position_tier":"top_3","avg_position":1.455305643,"total_impressions":2618.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9749814599,"priority_score":21.2137728794,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":53,"content_hash_id":"content_2b76b956c1a5aa80","position_tier":"top_3","avg_position":1.6682518377,"total_impressions":2704.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9700680971,"priority_score":21.1935129921,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":54,"content_hash_id":"content_7c27a500eed74248","position_tier":"top_3","avg_position":1.7321262262,"total_impressions":2786.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9662040459,"priority_score":21.1888617609,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":55,"content_hash_id":"content_f3f6421a34ede015","position_tier":"top_3","avg_position":2.9660175003,"total_impressions":2661.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9714445432,"priority_score":21.1805509218,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":56,"content_hash_id":"content_5fde73ece2ba6d36","position_tier":"top_3","avg_position":2.3696861226,"total_impressions":2658.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9709681426,"priority_score":21.1671371183,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":57,"content_hash_id":"content_2e6f70bef2a448dd","position_tier":"top_3","avg_position":0.22234547,"total_impressions":109916.0,"feat_ctr":0.0609556389,"tier_expected_ctr":2.7645,"opportunity_gap":2.7035443611,"rf_prob":0.6737721054,"priority_score":21.1438710514,"action_label":"monitor_ctr","reason_text":"Directional signal present but below confidence threshold -- flag for next review cycle if impression volume grows"},{"queue_rank":58,"content_hash_id":"content_cce7923215e3dd5b","position_tier":"top_3","avg_position":2.2314512187,"total_impressions":2610.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9711927095,"priority_score":21.1231230235,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":59,"content_hash_id":"content_188b924f3b96f261","position_tier":"top_3","avg_position":0.4013302354,"total_impressions":2477.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9764854772,"priority_score":21.0971053674,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":60,"content_hash_id":"content_087632fc68dcd6db","position_tier":"top_3","avg_position":0.6716548596,"total_impressions":2468.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9764782829,"priority_score":21.0871277012,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":61,"content_hash_id":"content_128b089eab76d5ce","position_tier":"top_3","avg_position":2.3363111794,"total_impressions":2564.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9711927095,"priority_score":21.0754001043,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":62,"content_hash_id":"content_0a7a764302e3eb43","position_tier":"top_3","avg_position":1.9573438006,"total_impressions":2560.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9711927095,"priority_score":21.0712099166,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":63,"content_hash_id":"content_5fde7b23ee9d8f16","position_tier":"top_3","avg_position":1.534438016,"total_impressions":19777.0,"feat_ctr":0.0202255145,"tier_expected_ctr":2.7645,"opportunity_gap":2.7442744855,"rf_prob":0.7750015589,"priority_score":21.0391660611,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":64,"content_hash_id":"content_baa873eb50ee2710","position_tier":"top_3","avg_position":2.4735119071,"total_impressions":2499.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9711927095,"priority_score":21.0064857401,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":65,"content_hash_id":"content_3eb93e7a5bbd5222","position_tier":"top_3","avg_position":0.7018429346,"total_impressions":2366.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9767813132,"priority_score":20.9797458289,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":66,"content_hash_id":"content_8a3fdc6f7006ad25","position_tier":"top_3","avg_position":2.8687027819,"total_impressions":21699.0,"feat_ctr":0.0276510438,"tier_expected_ctr":2.7645,"opportunity_gap":2.7368489562,"rf_prob":0.7677018882,"priority_score":20.9794667588,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":67,"content_hash_id":"content_a8440d564c0facd9","position_tier":"top_3","avg_position":0.7530038134,"total_impressions":2361.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9767813132,"priority_score":20.9740357148,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":68,"content_hash_id":"content_f2b385358da429ab","position_tier":"top_3","avg_position":2.4354786969,"total_impressions":2439.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9711927095,"priority_score":20.941263207,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":69,"content_hash_id":"content_3252c99e9fabb419","position_tier":"top_3","avg_position":2.892714381,"total_impressions":2438.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9711927095,"priority_score":20.9401626281,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":70,"content_hash_id":"content_090057cacd51b1e9","position_tier":"top_3","avg_position":2.0853322761,"total_impressions":2397.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9711927095,"priority_score":20.8946459903,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":71,"content_hash_id":"content_35f10273f0baf406","position_tier":"top_3","avg_position":2.1987514808,"total_impressions":22942.0,"feat_ctr":0.0217940894,"tier_expected_ctr":2.7645,"opportunity_gap":2.7427059106,"rf_prob":0.7577493914,"priority_score":20.8675651452,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":72,"content_hash_id":"content_e78cfc4b077bfb6d","position_tier":"top_3","avg_position":0.993121019,"total_impressions":2262.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9768808157,"priority_score":20.8605403096,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":73,"content_hash_id":"content_fce56872cf9f8461","position_tier":"top_3","avg_position":1.819946598,"total_impressions":2362.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9711927095,"priority_score":20.8551703039,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":74,"content_hash_id":"content_cc853a10c20e96b5","position_tier":"top_3","avg_position":2.5283873233,"total_impressions":2348.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9711927095,"priority_score":20.839216067,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":75,"content_hash_id":"content_6835d54f3891230c","position_tier":"top_3","avg_position":2.377702911,"total_impressions":18259.0,"feat_ctr":0.0438140095,"tier_expected_ctr":2.7645,"opportunity_gap":2.7206859905,"rf_prob":0.7803430256,"priority_score":20.8325404508,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":76,"content_hash_id":"content_9fa38c088d75fe83","position_tier":"top_3","avg_position":0.7854964486,"total_impressions":2233.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9768808157,"priority_score":20.8257090403,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":77,"content_hash_id":"content_3fc85bdef381af2d","position_tier":"top_3","avg_position":1.5071687142,"total_impressions":2259.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.975403543,"priority_score":20.8254172287,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":78,"content_hash_id":"content_8addaba591c50570","position_tier":"top_3","avg_position":0.5084117355,"total_impressions":2220.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9768808157,"priority_score":20.8099479939,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":79,"content_hash_id":"content_9506d19a8ff03cc8","position_tier":"top_3","avg_position":0.7474519849,"total_impressions":2167.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9768808157,"priority_score":20.7447221704,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":80,"content_hash_id":"content_60a1acf8e356bd94","position_tier":"top_3","avg_position":0.9175206684,"total_impressions":2138.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9768808157,"priority_score":20.7083543009,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":81,"content_hash_id":"content_d096697dcee8950a","position_tier":"top_3","avg_position":0.9083599982,"total_impressions":2134.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9768808157,"priority_score":20.7032993869,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":82,"content_hash_id":"content_192a7aa395b6d03d","position_tier":"top_3","avg_position":1.9340569224,"total_impressions":2218.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.971292212,"priority_score":20.6884780374,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":83,"content_hash_id":"content_a6bd8fd783853351","position_tier":"top_3","avg_position":2.8435721032,"total_impressions":2210.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.971292212,"priority_score":20.6787800139,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":84,"content_hash_id":"content_72b955b5f26aec97","position_tier":"top_3","avg_position":0.8067169348,"total_impressions":2110.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9768808157,"priority_score":20.6727695807,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":85,"content_hash_id":"content_0bbdb0b331945e67","position_tier":"top_3","avg_position":1.4460029782,"total_impressions":2133.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9750809623,"priority_score":20.6638917303,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":86,"content_hash_id":"content_099392956b784b8d","position_tier":"top_3","avg_position":0.7194959223,"total_impressions":2099.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9768808157,"priority_score":20.6586605687,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":87,"content_hash_id":"content_f520e8732cd4263e","position_tier":"top_3","avg_position":2.6374036932,"total_impressions":2186.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.971292212,"priority_score":20.6494739951,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":88,"content_hash_id":"content_bdc734c8ee9548c7","position_tier":"top_3","avg_position":1.8615250262,"total_impressions":2154.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.971292212,"priority_score":20.6098950223,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":89,"content_hash_id":"content_f06493b47cf5dab4","position_tier":"top_3","avg_position":1.6540081725,"total_impressions":2169.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9703921664,"priority_score":20.6094049596,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":90,"content_hash_id":"content_8c9a17254a9e82a7","position_tier":"top_3","avg_position":1.3946085312,"total_impressions":2082.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.975403543,"priority_score":20.6055021634,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":91,"content_hash_id":"content_027fcab15a063266","position_tier":"top_3","avg_position":2.4257443939,"total_impressions":2150.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.971292212,"priority_score":20.6049063775,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":92,"content_hash_id":"content_3693af480d2c7793","position_tier":"top_3","avg_position":2.9166385244,"total_impressions":2141.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.971292212,"priority_score":20.5936479236,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":93,"content_hash_id":"content_e49b0b8545cc8ad3","position_tier":"top_3","avg_position":1.1387812453,"total_impressions":2058.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.975403543,"priority_score":20.5742531057,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":94,"content_hash_id":"content_55514cdc61dd6f56","position_tier":"top_3","avg_position":2.3344369179,"total_impressions":2119.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.971292212,"priority_score":20.5659268791,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":95,"content_hash_id":"content_6765e229738fb3c1","position_tier":"top_3","avg_position":1.5655035624,"total_impressions":2045.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.975403543,"priority_score":20.5571741008,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":96,"content_hash_id":"content_dfb3180b9bfa088e","position_tier":"top_3","avg_position":1.0382750579,"total_impressions":2033.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.975403543,"priority_score":20.5413122722,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":97,"content_hash_id":"content_72e556b597ccb43a","position_tier":"top_3","avg_position":0.5330141092,"total_impressions":1989.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9768808157,"priority_score":20.5133616795,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":98,"content_hash_id":"content_f4005630cd53d099","position_tier":"top_3","avg_position":1.8224129779,"total_impressions":2074.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.971292212,"priority_score":20.5083174325,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":99,"content_hash_id":"content_369e587914b67465","position_tier":"top_3","avg_position":0.3950472641,"total_impressions":1966.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.9765849797,"priority_score":20.4757643813,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"},{"queue_rank":100,"content_hash_id":"content_0b5728913516b1fc","position_tier":"top_3","avg_position":1.3721058956,"total_impressions":1979.0,"feat_ctr":0.0,"tier_expected_ctr":2.7645,"opportunity_gap":2.7645,"rf_prob":0.975403543,"priority_score":20.4687562421,"action_label":"rewrite_title_and_meta","reason_text":"High-confidence CTR opportunity: page ranks in top-10 but captures far below tier benchmark -- title\/meta rewrite is the highest-leverage lever"}];
+
+        // Render queue table
+        function renderQueue(data) {
+            const tbody = document.getElementById('queue-tbody');
+            tbody.innerHTML = '';
+            
+            data.slice(0, 25).forEach(r => {
+                const badgeClass = r.action_label === 'rewrite_title_and_meta' ? 'badge-rewrite' : r.action_label === 'review_snippet_and_intent' ? 'badge-review' : 'badge-monitor';
+                const actionClean = r.action_label.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="text-center font-mono font-bold">${r.queue_rank}</td>
+                    <td class="font-mono text-muted">${r.content_hash_id.slice(0, 14)}...</td>
+                    <td><span class="tier-tag tier-${r.position_tier}">${r.position_tier.replace(/_/g, ' ')}</span></td>
+                    <td class="text-right">${r.avg_position.toFixed(1)}</td>
+                    <td class="text-right font-mono">${Math.round(r.total_impressions).toLocaleString()}</td>
+                    <td class="text-right">${r.feat_ctr.toFixed(2)}%</td>
+                    <td class="text-right text-emerald font-bold">+${r.opportunity_gap.toFixed(2)}pp</td>
+                    <td class="text-right font-mono">${r.rf_prob.toFixed(3)}</td>
+                    <td class="text-right font-bold text-accent font-mono">${r.priority_score.toFixed(2)}</td>
+                    <td><span class="badge ${badgeClass}">${actionClean}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Initial render
+        renderQueue(queueData);
+
+        // Filter and Search logic
+        let currentFilter = 'all';
+        let searchQuery = '';
+
+        function applyFilters() {
+            let filtered = queueData;
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(r => r.position_tier === currentFilter);
+            }
+            if (searchQuery.trim() !== '') {
+                filtered = filtered.filter(r => r.content_hash_id.toLowerCase().includes(searchQuery.toLowerCase()));
+            }
+            renderQueue(filtered);
+        }
+
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.getAttribute('data-filter');
+                applyFilters();
+            });
+        });
+
+        document.getElementById('queue-search').addEventListener('input', e => {
+            searchQuery = e.target.value;
+            applyFilters();
+        });
+
+        // Scroll Progress Bar
+        window.addEventListener('scroll', () => {
+            const winScroll = document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progress-bar').style.width = scrolled + '%';
+        });
+
+        // Copy Code utility
+        function copyCode(elementId) {
+            const text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.getElementById('toast');
+                toast.style.display = 'block';
+                setTimeout(() => { toast.style.display = 'none'; }, 2500);
+            });
+        }
+
+        // Active TOC highlight
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    document.querySelectorAll('.toc-item a').forEach(a => {
+                        a.classList.toggle('active', a.getAttribute('href') === `#${id}`);
+                    });
+                }
+            });
+        }, { threshold: 0.25 });
+
+        document.querySelectorAll('section, .abstract-container').forEach(s => observer.observe(s));
+    </script>
 </body>
 </html>
