@@ -1,0 +1,45 @@
+{
+  "total_pages_scored": 60088,
+  "clients": 28,
+  "observation_window": "Jan-Feb 2026 (dev)",
+  "impression_floor": 100,
+  "action_counts": {
+    "rewrite_title_and_meta": 2883,
+    "review_snippet_and_intent": 10038,
+    "monitor_ctr": 16370,
+    "no_action": 30797
+  },
+  "model": {
+    "type": "RandomForestClassifier",
+    "n_estimators": 100,
+    "max_depth": 6,
+    "min_samples_leaf": 20,
+    "features": [
+      "log_impressions",
+      "feat_ctr",
+      "avg_position",
+      "days_active",
+      "opportunity_gap",
+      "ctr_trend"
+    ],
+    "label": "ctr_improved (>=10% CTR gain Jan->Feb)",
+    "train_base_rate_pct": 59.0
+  },
+  "priority_score_formula": "rf_prob x opportunity_gap x log1p(total_impressions)",
+  "monitoring": {
+    "retrain_if_improvement_rate_below_pct": 45.0,
+    "retrain_if_top3_ctr_outside_range": [
+      2.3498,
+      3.1792
+    ],
+    "retrain_if_ks_pvalue_below": 0.05,
+    "calendar_retrain_every_days": 90
+  },
+  "exports": [
+    "action_queue_top100.csv",
+    "action_distribution.png",
+    "priority_score_by_tier.png",
+    "rf_prob_distribution.png",
+    "playbook_summary.json"
+  ]
+}
